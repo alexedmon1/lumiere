@@ -3,6 +3,21 @@
 The specification's identifier is `neurofaune.results`; it moved from neurofaune to
 neurobox-dev (a working name) on 2026-11-03.
 
+## Gallery shell — 2026-11-03 (spec still 0.4.0)
+
+`neurobox.gallery.build(study, settings, out=None)` and `python -m neurobox gallery <study>`:
+one static gallery per study from its conforming analysis folders, the shell every tool's
+`gallery build` calls (Esprit's results plan, step 5). Settings are cuprizone's planned
+`gallery.yaml` format (`name`, `paths.results` / `paths.gallery`, `links`, `sections` with
+`group`, `match` and `note`) plus `groups` / `group_order` for display labels; a tool parses
+the YAML and passes a dict, so the package stays standard-library only. Each analysis shows
+its description, caveats, decision (with its calibration), design, inference, effect, run,
+producer, figures and tables (column descriptions on hover, sortable, filterable, full CSV
+linked); the newest run of each id is shown and earlier runs listed; folders that do not
+conform are listed, not shown. A table column whose values are relative paths to files beside
+the analysis (a recording's report) becomes links. Text from results is set as text, never
+HTML. Colours and layout follow source-lightbox's.
+
 ## 0.4.0 — 2026-11-03 (draft)
 
 One schema for MRI and EEG, plus what cuprizone's first real run of the spec (the TBSS

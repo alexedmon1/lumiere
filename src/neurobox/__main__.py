@@ -1,4 +1,5 @@
-"""``python -m neurobox check <path> [--json]`` -- the conformance checker."""
+"""``python -m neurobox check <path> [--json]`` -- the conformance checker;
+``python -m neurobox gallery <study> [--settings FILE] [--out DIR]`` -- a study's gallery."""
 from __future__ import annotations
 
 import argparse
@@ -16,8 +17,26 @@ def main(argv: list[str] | None = None) -> int:
     c = sub.add_parser("check", help="check every analysis folder at or under a path")
     c.add_argument("path")
     c.add_argument("--json", action="store_true", help="one JSON report per folder")
+    g = sub.add_parser("gallery", help="build a study's gallery from its analysis folders")
+    g.add_argument("study", help="the study folder (where gallery.yaml is; its paths are relative to it)")
+    g.add_argument("--settings", help="the settings file (default: <study>/gallery.yaml or gallery.json)")
+    g.add_argument("--out", help="where to write the gallery (default: the settings' paths.gallery)")
     a = ap.parse_args(argv)
+    if a.cmd == "gallery":
+        return run_gallery(a.study, a.settings, a.out)
     return run_check(a.path, as_json=a.json)
+
+
+def run_gallery(study: str, settings: str | None = None, out: str | None = None) -> int:
+    from .gallery import GalleryError, build, load_settings
+
+    try:
+        index = build(study, load_settings(settings) if settings else None, out)
+    except (GalleryError, OSError, ValueError) as exc:
+        print(f"gallery not built: {exc}", file=sys.stderr)
+        return 1
+    print(index)
+    return 0
 
 
 def run_check(path: str, as_json: bool = False) -> int:

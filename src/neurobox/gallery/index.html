@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>$title</title>
+<link rel="stylesheet" href="assets/gallery.css">
+<script>window.GALLERY = $manifest;</script>
+</head>
+<body>
+<nav id="sidebar">
+  <div class="sidebar-header">
+    <h1 id="gallery-title">$title</h1>
+    <input type="search" id="search" placeholder="Search analyses" autocomplete="off">
+  </div>
+  <div id="nav"></div>
+  <div class="sidebar-footer">
+    <button id="theme" title="Light or dark">&#9788; / &#9790;</button>
+    <span class="built">built $built</span>
+  </div>
+</nav>
+<main id="content"></main>
+<script src="assets/gallery.js"></script>
+</body>
+</html>
