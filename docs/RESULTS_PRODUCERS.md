@@ -53,13 +53,15 @@ write_analysis(out, {
 
 ## 2. Getting the checker and writer
 
-The package `neurobox` (in neurobox-dev) is standard-library only, so any producer can
-depend on it without another tool's stack. Two ways in:
+The package `neurobox` (in neurobox-dev) is standard-library only, and **optional**: a
+producer should run without it and use it when installed. Two ways in:
 
-- **Depend on neurobox-dev**, pinned to a commit like any other pin
-  (`neurobox-dev @ git+https://github.com/alexedmon1/neurobox-dev@<ref>`), and import
-  `neurobox`. neurofaune does this, and re-exports it as `neurofaune.results`, so
-  existing code keeps working.
+- **As an optional extra**, pinned to a commit like any other pin
+  (`neurobox-dev @ git+https://github.com/alexedmon1/neurobox-dev@<ref>`), imported as
+  `neurobox`. neurofaune does this (`neurofaune[results]`): with it, analyses also write
+  the column dictionaries, `analysis.json` and `provenance.json`; without it, they write
+  their tables and say how to install it. It re-exports the package as
+  `neurofaune.results`, so existing code keeps working.
 - **Run the checker in isolation**, without touching the producer's environment:
   `uvx --from "neurobox-dev @ git+https://github.com/alexedmon1/neurobox-dev@<ref>" neurobox check <dir>`.
 

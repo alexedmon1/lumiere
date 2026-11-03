@@ -6,8 +6,10 @@ Producers are neurofaune, neurovrai, source-analytics, source-localization and a
 study's own orchestration scripts; `RESULTS_PRODUCERS.md` says how each one meets this.
 The specification, its JSON Schemas (`src/neurobox/schemas/`) and the conformance
 checker (`python -m neurobox check`) live in **neurobox-dev** (a working name). They
-moved there from neurofaune, unchanged, on 2026-11-03; neurofaune re-exports them as
-`neurofaune.results`, and `neurofaune results check` still works.
+moved there from neurofaune, unchanged, on 2026-11-03. It is optional for every tool:
+neurofaune takes it as an extra (`neurofaune[results]`) and re-exports it as
+`neurofaune.results`; without it, neurofaune still writes its tables but not their
+descriptions, and `neurofaune results check` says how to install it.
 
 **Readers.** A study's gallery reads it. Today that is source-lightbox for EEG studies;
 its page shell is moving into neurobox-dev, so that each tool's `gallery build`

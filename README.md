@@ -16,6 +16,6 @@ pip install "neurobox-dev @ git+https://github.com/alexedmon1/neurobox-dev@<comm
 python -m neurobox check path/to/results
 ```
 
-**Where it came from:** neurofaune's `neurofaune.results` (spec 0.3.0), moved here unchanged on 2026-11-03 so EEG tools can use it without installing neurofaune. neurofaune re-exports it as `neurofaune.results`, and the identifier written in each `analysis.json` stays `"neurofaune.results"` until the final name is chosen. The plan for 0.4 (EEG) is in Esprit's `docs/RESULTS_SCHEMA_DRAFT.md`.
+**Where it came from:** neurofaune's `neurofaune.results` (spec 0.3.0), moved here unchanged on 2026-11-03 so EEG tools can use it without installing neurofaune. It is **optional everywhere**: tools run without it, and use it when installed. neurofaune takes it as an extra (`neurofaune[results]`) and re-exports it as `neurofaune.results`, and the identifier written in each `analysis.json` stays `"neurofaune.results"` until the final name is chosen. The plan for 0.4 (EEG) is in Esprit's `docs/RESULTS_SCHEMA_DRAFT.md`.
 
 Producers: neurofaune (TBSS, VBM, voxelwise fMRI); planned: source-analytics, source-localization, neurovrai.

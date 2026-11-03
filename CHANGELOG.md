@@ -12,7 +12,8 @@ checker's command (`python -m neurobox check`), the vocabulary path in one messa
 the documents, which now name source-lightbox and the planned gallery shell as readers
 instead of "neuro-lightbox", and make 1.0.0 depend on one MRI study (cuprizone) and one
 EEG study (FORGE) building galleries. neurofaune re-exports the package as
-`neurofaune.results`, and every `analysis.json` keeps `"spec": "neurofaune.results"`.
+`neurofaune.results`, as an optional extra (`neurofaune[results]`), and every `analysis.json`
+keeps `"spec": "neurofaune.results"`.
 
 ## 0.1.0 — 2026-10-06 (draft)
 
