@@ -17,6 +17,12 @@ specification and its checker live in neurobox-dev (moved from neurofaune on
    against the reference group's mean, and `mde_note` ("not computed: ...") wherever
    there is no `mde`. Compute it where the model is fitted, which holds the standard
    error and the degrees of freedom; it reproduces the spec's reference values.
+   From 0.4 the `mde_percent` column says what it is a percent of (`PercentOf`), and an
+   EEG producer uses what it needs of 0.4 (RESULTS_SPEC.md §3.1, §3.3, §5.2-§5.6):
+   `modality: "eeg"` with `domain` and `task`; a `FacetName` on each of several `facet`
+   columns; `inference.families` and a `correction_family` column where tests are
+   corrected in several families; `EffectMeasure: "per_row"` with an `effect_measure`
+   column for mixed tables; the Bayesian terms; and figures' `kind`, `facets` and `shows`.
 3. **Write `analysis.json` and `provenance.json`** and check the folder:
 
 ```python

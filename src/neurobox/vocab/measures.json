@@ -1,5 +1,5 @@
 {
- "_comment": "The results specification's measure vocabulary (0.2): canonical name -> modality, description, aliases. A known measure is written by its canonical name; an analysis may list a measure not here (the checker warns) -- add it here, in neurofaune, with a CHANGELOG line, rather than inventing a spelling.",
+ "_comment": "The results specification's measure vocabulary (0.2): canonical name -> modality (or, for a measure several modalities use, modalities), description, aliases. A known measure is written by its canonical name; an analysis may list a measure not here (the checker warns) -- add it here, in neurobox-dev, with a CHANGELOG line, rather than inventing a spelling. EEG measures were added in 0.4.",
  "FA": {
   "modality": "dwi",
   "description": "fractional anisotropy (DTI)"
@@ -215,5 +215,190 @@
  "Asp": {
   "modality": "mrs",
   "description": "aspartate (MRS concentration, in the units the column dictionary states)"
+ },
+ "band_power": {
+  "modality": "eeg",
+  "description": "absolute band power: mean power density over the band, dB/Hz",
+  "aliases": [
+   "absolute_power"
+  ]
+ },
+ "relative_power": {
+  "modality": "eeg",
+  "description": "relative band power: the band's fraction of total power"
+ },
+ "aperiodic_exponent": {
+  "modality": "eeg",
+  "description": "aperiodic (1/f) exponent of the power spectrum (specparam/FOOOF)",
+  "aliases": [
+   "exponent"
+  ]
+ },
+ "aperiodic_offset": {
+  "modality": "eeg",
+  "description": "aperiodic (1/f) offset of the power spectrum (specparam/FOOOF)",
+  "aliases": [
+   "offset"
+  ]
+ },
+ "coherence": {
+  "modality": "eeg",
+  "description": "magnitude-squared coherence",
+  "aliases": [
+   "coh"
+  ]
+ },
+ "imcoh": {
+  "modality": "eeg",
+  "description": "imaginary coherence (Nolte et al. 2004)",
+  "aliases": [
+   "imaginary_coherence"
+  ]
+ },
+ "pli": {
+  "modality": "eeg",
+  "description": "phase-lag index (Stam et al. 2007)"
+ },
+ "wpli": {
+  "modality": "eeg",
+  "description": "weighted phase-lag index (Vinck et al. 2011)"
+ },
+ "dwpli": {
+  "modality": "eeg",
+  "description": "debiased weighted phase-lag index (Vinck et al. 2011)"
+ },
+ "dpli": {
+  "modality": "eeg",
+  "description": "directed phase-lag index (Stam & van Straaten 2012)"
+ },
+ "aec": {
+  "modality": "eeg",
+  "description": "amplitude-envelope correlation, leakage-orthogonalized (Hipp et al. 2012)"
+ },
+ "partial_correlation": {
+  "modality": "eeg",
+  "description": "shrinkage partial correlation (Ledoit-Wolf)"
+ },
+ "fcd": {
+  "modality": "eeg",
+  "description": "functional connectivity density: degree / (n - 1) above threshold"
+ },
+ "transfer_entropy": {
+  "modality": "eeg",
+  "description": "transfer entropy (Schreiber 2000)",
+  "aliases": [
+   "te"
+  ]
+ },
+ "dtf": {
+  "modality": "eeg",
+  "description": "directed transfer function (Kaminski & Blinowska 1991)"
+ },
+ "pac_mi": {
+  "modality": "eeg",
+  "description": "phase-amplitude coupling, Tort et al. (2010) modulation index",
+  "aliases": [
+   "pac",
+   "tort_mi"
+  ]
+ },
+ "aac": {
+  "modality": "eeg",
+  "description": "amplitude-amplitude coupling: correlation of two bands' power envelopes"
+ },
+ "ppc": {
+  "modality": "eeg",
+  "description": "n:m phase-phase coupling (phase-locking factor)"
+ },
+ "itc": {
+  "modality": "eeg",
+  "description": "inter-trial phase coherence"
+ },
+ "ersp": {
+  "modality": "eeg",
+  "description": "event-related spectral perturbation"
+ },
+ "stp": {
+  "modality": "eeg",
+  "description": "single-trial power"
+ },
+ "erp_amplitude": {
+  "modality": "eeg",
+  "description": "event-related potential amplitude",
+  "aliases": [
+   "erp"
+  ]
+ },
+ "erp_latency": {
+  "modality": "eeg",
+  "description": "event-related potential latency"
+ },
+ "decoding_accuracy": {
+  "modality": "eeg",
+  "description": "classification accuracy of a decoder",
+  "aliases": [
+   "accuracy"
+  ]
+ },
+ "auc": {
+  "modality": "eeg",
+  "description": "area under the ROC curve of a decoder",
+  "aliases": [
+   "roc_auc"
+  ]
+ },
+ "degree": {
+  "modalities": [
+   "eeg",
+   "func",
+   "dwi",
+   "anat"
+  ],
+  "description": "node degree in a thresholded network (graph theory)"
+ },
+ "clustering": {
+  "modalities": [
+   "eeg",
+   "func",
+   "dwi",
+   "anat"
+  ],
+  "description": "clustering coefficient (graph theory)"
+ },
+ "betweenness": {
+  "modalities": [
+   "eeg",
+   "func",
+   "dwi",
+   "anat"
+  ],
+  "description": "betweenness centrality (graph theory)"
+ },
+ "global_efficiency": {
+  "modalities": [
+   "eeg",
+   "func",
+   "dwi",
+   "anat"
+  ],
+  "description": "global efficiency of a network (graph theory)"
+ },
+ "modularity": {
+  "modalities": [
+   "eeg",
+   "func",
+   "dwi",
+   "anat"
+  ],
+  "description": "modularity of a network (graph theory)"
+ },
+ "small_worldness": {
+  "modalities": [
+   "eeg",
+   "func",
+   "dwi",
+   "anat"
+  ],
+  "description": "small-worldness of a network (graph theory)"
  }
 }

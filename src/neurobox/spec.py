@@ -6,20 +6,22 @@ neurofaune's imaging dependencies are not installed (neurovrai, a reader's lapto
 from __future__ import annotations
 
 SPEC = "neurofaune.results"
-SPEC_VERSION = "0.3.0"
+SPEC_VERSION = "0.4.0"
 #: The (major, minor) versions this package reads: every 0.x up to its own. A 0.1 folder
 #: is checked by 0.1's rules; the rules added in 0.2 apply to folders that declare 0.2 or
-#: later, and those added in 0.3 to folders that declare 0.3.
-READS = ((0, 1), (0, 2), (0, 3))
+#: later, and so on: each rule applies to folders declaring the version that added it or later.
+READS = ((0, 1), (0, 2), (0, 3), (0, 4))
 
 ANALYSIS_JSON = "analysis.json"
 PROVENANCE_JSON = "provenance.json"
 
 ANALYSIS_TYPES = ("tbss", "vbm", "tbm", "voxelwise", "roi", "covariance_network", "nbs", "graph",
-                  "connectome", "fixel", "decoding", "radiomics", "spectroscopy", "other")
+                  "connectome", "fixel", "decoding", "radiomics", "spectroscopy",
+                  # 0.4, for EEG: electrode-level, whole-brain source-space and directed-edge tests
+                  "sensor", "vertex", "directed", "other")
 #: The modality an analysis's data come from (0.2: required, one of these). An analysis
 #: on several modalities says "multimodal" and lists them in ``modalities``.
-MODALITIES = ("anat", "dwi", "func", "msme", "mrs", "asl", "multimodal")
+MODALITIES = ("anat", "dwi", "func", "msme", "mrs", "asl", "eeg", "multimodal")
 #: ``references`` labels with an agreed meaning (others are allowed, and opaque):
 #: a pre-registered hypothesis the analysis tests, a recorded finding it reports, a DOI.
 REFERENCE_LABELS = ("registration", "finding", "doi")
@@ -31,7 +33,22 @@ MAP_KINDS = ("stat", "p_corrected", "p_uncorrected", "effect", "mask", "backgrou
              "other")
 RUN_STATUSES = ("completed", "partial", "failed", "running")
 DECISION_OUTCOMES = ("holds", "does_not_hold", "not_assessed")
-TEST_KINDS = ("two_group", "one_sample", "regression", "interaction", "custom")
+TEST_KINDS = ("two_group", "one_sample", "regression", "interaction", "custom", "equivalence")
+#: 0.4: the procedure a correction used, by name (``p_kind`` says only what it controls).
+CORRECTION_METHODS = ("BH", "BY", "holm", "hochberg", "bonferroni", "tfce", "cluster", "maxT", "nbs",
+                      "none", "other")
+#: 0.4: a ``p_value`` column whose rows belong to families of different kinds says so as its PKind.
+PER_FAMILY = "per_family"
+#: 0.4: an ``effect_size`` column whose measure varies by row says so as its EffectMeasure, and
+#: names each row's measure in an ``effect_measure`` column.
+PER_ROW = "per_row"
+#: 0.4: what a figure is, so a gallery can lay figures out and filter them.
+FIGURE_KINDS = ("brain", "matrix", "spectrum", "distribution", "trajectory", "summary", "diagnostic",
+                "other")
+#: 0.4: who drew a figure: the analysis, with its results, or the tool when it built the gallery.
+DRAWN_BY = ("analysis", "gallery")
+#: 0.4: how a Bayes factor column is written.
+BF_SCALES = ("log10", "linear")
 TABLE_SUFFIXES = {".csv": ",", ".tsv": "\t"}
 PLANES = ("axial", "coronal", "sagittal")
 #: Each voxel axis runs toward one end of one of these pairs (S = superior / dorsal,
@@ -59,12 +76,22 @@ STANDARD_TERMS: dict[str, tuple[str, ...]] = {
     "subgroup_effect": ("EffectMeasure", "Subgroup"), "subgroup_n": ("Subgroup",),
     # 0.3: what the design could have detected (RESULTS_SPEC.md §5.1)
     "se": (), "mde": ("Power", "Alpha"), "mde_percent": (), "mde_note": (),
+    # 0.4 (RESULTS_SPEC.md §5.2-§5.6)
+    "correction_family": (), "p_uncorrected": (), "effect_measure": (),
+    "margin": ("Units",), "equivalent": (),
+    "posterior_median": (), "hdi_low": ("CILevel",), "hdi_high": ("CILevel",), "p_direction": (),
+    "p_rope": ("Rope",), "bf10": ("Scale",),
+    "sesoi": ("Basis",), "reading": ("Levels",),
 }
 
 #: Standard terms added after 0.1, with the (major, minor) version that added them. A folder
 #: declaring an earlier version may not use them.
-TERMS_SINCE: dict[str, tuple[int, int]] = {"se": (0, 3), "mde": (0, 3), "mde_percent": (0, 3),
-                                           "mde_note": (0, 3)}
+TERMS_SINCE: dict[str, tuple[int, int]] = {
+    **dict.fromkeys(("se", "mde", "mde_percent", "mde_note"), (0, 3)),
+    **dict.fromkeys(("correction_family", "p_uncorrected", "effect_measure", "margin", "equivalent",
+                     "posterior_median", "hdi_low", "hdi_high", "p_direction", "p_rope", "bf10",
+                     "sesoi", "reading"), (0, 4)),
+}
 #: Every reason an ``mde`` is not given starts with this (``mde_note``).
 NOT_COMPUTED = "not computed: "
 
@@ -73,7 +100,12 @@ PER_SUBGROUP = ("subgroup_effect", "subgroup_n")
 
 #: Qualifier keys a dictionary entry may carry, besides BIDS's Description / Units / Levels.
 QUALIFIERS = ("Standard", "EffectMeasure", "EffectScope", "CILevel", "StatName", "StatScope",
-              "PKind", "PScope", "Alpha", "Power", "Space", "Subgroup")
+              "PKind", "PScope", "Alpha", "Power", "Space", "Subgroup",
+              # 0.4
+              "FacetName", "PercentOf", "Rope", "Scale", "Basis")
+#: Qualifiers added after 0.3, with the version that added them.
+QUALIFIERS_SINCE: dict[str, tuple[int, int]] = dict.fromkeys(
+    ("FacetName", "PercentOf", "Rope", "Scale", "Basis"), (0, 4))
 
 
 # ── 0.2: identity and vocabulary ──────────────────────────────────────────────────
@@ -117,6 +149,29 @@ def measure_vocabulary() -> dict[str, dict]:
 
     data = json.loads((Path(__file__).parent / "vocab" / "measures.json").read_text())
     return {k: v for k, v in data.items() if not k.startswith("_")}
+
+
+def domain_vocabulary() -> dict[str, dict]:
+    """The domain vocabulary (vocab/domains.json, 0.4): name -> {modalities, description}."""
+    import json
+    from pathlib import Path
+
+    data = json.loads((Path(__file__).parent / "vocab" / "domains.json").read_text())
+    return {k: v for k, v in data.items() if not k.startswith("_")}
+
+
+def entry_modalities(entry: dict) -> tuple[str, ...]:
+    """The modalities a vocabulary entry belongs to: ``modality`` (one) or ``modalities``."""
+    if entry.get("modalities"):
+        return tuple(entry["modalities"])
+    return (entry["modality"],) if entry.get("modality") else ()
+
+
+def task_problem(task: str) -> str | None:
+    """Why ``task`` is not a BIDS task label (letters and digits only), else None."""
+    if not isinstance(task, str) or not task or not task.isascii() or not task.isalnum():
+        return "is not a BIDS task label (letters and digits only, e.g. 'rest', 'assr40')"
+    return None
 
 
 def canonical_measure(name: str, vocabulary: dict[str, dict] | None = None) -> tuple[str | None, bool]:

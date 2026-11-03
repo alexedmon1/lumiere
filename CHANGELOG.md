@@ -3,6 +3,43 @@
 The specification's identifier is `neurofaune.results`; it moved from neurofaune to
 neurobox-dev (a working name) on 2026-11-03.
 
+## 0.4.0 — 2026-11-03 (draft)
+
+One schema for MRI and EEG, plus what cuprizone's first real run of the spec (the TBSS
+read-out, 330 tests; Esprit's results plan, step 2) showed was missing. **Everything is
+additive and optional:** a 0.3 folder conforms unchanged; a folder that only changes its
+`spec_version` to 0.4 gains warnings at most (cuprizone's two folders: one warning each,
+the `PercentOf` below). A folder declaring 0.3 or earlier may not use anything below.
+
+- **EEG identity** (§3.1): modality `eeg`; analysis types `sensor`, `vertex`, `directed`;
+  optional `domain` (new vocabulary, `vocab/domains.json`, each domain tagged by
+  modality), `task` (a BIDS task label) and `atlas` (`{name, version}` of the parcellation
+  `element` values name). EEG measures in the measure vocabulary (`band_power`,
+  `aperiodic_exponent`, `dwpli`, `transfer_entropy`, `pac_mi`, `itc`, …, with
+  source-analytics' short names as aliases), and graph metrics shared by several
+  modalities (a vocabulary entry may give `modalities`).
+- **Named facets** (§5.2): several `facet` columns, each with a `FacetName`; a test is
+  measure + contrast + every facet.
+- **Correction families** (§5.2): `inference.families` in place of one `correction`; a
+  `correction_family` column; `PKind: "per_family"`; `correction.method` names the
+  procedure (`BH`, `holm`, `tfce`, …); `p_uncorrected` beside the corrected p.
+- **Equivalence tests** (§5.3): `test_kind` `equivalence`, terms `margin` and `equivalent`.
+- **Per-row effect measures** (§5.4): `EffectMeasure: "per_row"` with `effect_measure`.
+- **Bayesian results** (§5.5): `posterior_median`, `hdi_low`/`hdi_high`, `p_direction`,
+  `p_rope`, `bf10`; a `bayesian` analysis gives the first four on every row in place of
+  the effect, its interval and p.
+- **From cuprizone's run:** `PercentOf` on `mde_percent` (warned when missing in 0.4),
+  since a percent of the controls' mean change is not a percent of the measure (§5.1);
+  the smallest effect of interest, `effect.sesoi` or a `sesoi` column, and a `reading`
+  column against it (§5.6); `decision.calibration` (how often the rule holds with no
+  effect) and `decision.rests_on`, with a table's `threshold` so the uncorrected clusters a
+  rule counts can be listed (§3.4); a map's `space_derivation` for a space derived from a
+  template, and `design.sessions` and `design.timepoints` (§3.5).
+- **Figures** (§3.3): `facets`, `kind`, `shows`, `headline`, `drawn_by`.
+- The schemas' `$id`s point at neurobox-dev. `inference.correction` is no longer
+  required by the schema; the checker requires it for folders before 0.4, and one of
+  `correction` or `families` from 0.4.
+
 ## Moved to neurobox-dev — 2026-11-03 (spec still 0.3.0)
 
 No change to the specification, its schemas, checker or writer: the package

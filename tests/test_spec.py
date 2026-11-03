@@ -102,7 +102,16 @@ def test_schemas_and_vocabulary_agree():
     assert tuple(a["properties"]["role"]["enum"]) == spec.ROLES
     assert tuple(a["properties"]["tables"]["items"]["properties"]["role"]["enum"]) == spec.TABLE_ROLES
     assert tuple(a["properties"]["maps"]["items"]["properties"]["kind"]["enum"]) == spec.MAP_KINDS
-    assert tuple(c["additionalProperties"]["properties"]["PKind"]["enum"]) == spec.P_KINDS
+    assert tuple(c["additionalProperties"]["properties"]["PKind"]["enum"]) == (*spec.P_KINDS, spec.PER_FAMILY)
+    assert tuple(a["properties"]["figures"]["items"]["properties"]["kind"]["enum"]) == spec.FIGURE_KINDS
+    assert tuple(a["properties"]["figures"]["items"]["properties"]["drawn_by"]["enum"]) == spec.DRAWN_BY
+    assert tuple(a["properties"]["design"]["properties"]["test_kinds"]["items"]["enum"]) == spec.TEST_KINDS
+    for node in (a["properties"]["inference"]["properties"]["correction"],
+                 a["properties"]["inference"]["properties"]["families"]["items"],
+                 a["properties"]["tables"]["items"]["properties"]["threshold"]):
+        assert tuple(node["properties"]["p_kind"]["enum"]) == spec.P_KINDS
+        assert tuple(node["properties"]["method"]["enum"]) == spec.CORRECTION_METHODS
+    assert tuple(c["additionalProperties"]["properties"]["Scale"]["enum"]) == spec.BF_SCALES
     assert set(c["additionalProperties"]["properties"]["Standard"]["enum"]) == set(STANDARD_TERMS)
     assert set(spec.QUALIFIERS) <= set(c["additionalProperties"]["properties"])
 
@@ -110,7 +119,8 @@ def test_schemas_and_vocabulary_agree():
 MDE_COLUMNS = {
     "se": {"Description": "SE of the difference", "Standard": "se"},
     "mde": {"Description": "minimum detectable difference", "Standard": "mde", "Power": 0.8, "Alpha": 0.05},
-    "mde_pct": {"Description": "mde, percent of B's mean", "Standard": "mde_percent", "Units": "%"},
+    "mde_pct": {"Description": "mde, percent of B's mean", "Standard": "mde_percent", "Units": "%",
+                "PercentOf": "group B's mean of the measure"},
     "mde_note": {"Description": "why no mde", "Standard": "mde_note"},
 }
 
@@ -239,7 +249,8 @@ def test_a_standard_term_is_claimed_once(folder):
 
 
 @pytest.mark.parametrize("version, ok", [(SPEC_VERSION, True), ("0.1.7", True), ("0.2.0", True),
-                                         ("0.3.0", True), ("0.4.0", False), ("1.0.0", False)])
+                                         ("0.3.0", True), ("0.4.0", True), ("0.5.0", False),
+                                         ("1.0.0", False)])
 def test_spec_version(folder, version, ok):
     write_analysis(folder, {**_analysis(), "spec_version": version}, _prov(), strict=False)
     assert ("not readable" not in _errors(folder)) is ok
@@ -374,7 +385,8 @@ def test_the_measure_vocabulary_is_packaged_and_consistent():
 
     vocab = measure_vocabulary()
     assert {"FA", "MK", "FICVF", "T2", "MWF", "ReHo", "fALFF", "logJ_local", "Cr+PCr"} <= set(vocab)
-    assert all(v["modality"] in MODALITIES and v["modality"] != "multimodal" for v in vocab.values())
+    assert all(spec.entry_modalities(v) and set(spec.entry_modalities(v)) <= set(MODALITIES) - {"multimodal"}
+               for v in vocab.values())
     names = {k.lower() for k in vocab}
     aliases = [a.lower() for v in vocab.values() for a in v.get("aliases", [])]
     assert len(aliases) == len(set(aliases)) and not names & set(aliases)
@@ -550,3 +562,320 @@ def test_0_3_terms_are_not_for_older_folders(folder):
     _with_mde(folder)
     write_analysis(folder, {**_analysis(), "spec_version": "0.2.0"}, _prov(), strict=False)
     assert "are from 0.3; the folder declares 0.2" in _errors(folder)
+
+
+# ── 0.4: EEG, correction families, equivalence, Bayesian results, smallest effects ──────
+
+EEG_COLUMNS = {
+    "measure": {"Description": "aperiodic parameter", "Standard": "measure"},
+    "contrast": {"Description": "group pair", "Standard": "contrast"},
+    "band": {"Description": "frequency band", "Standard": "facet", "FacetName": "band"},
+    "tier": {"Description": "spatial tier", "Standard": "facet", "FacetName": "tier"},
+    "roi": {"Description": "parcel", "Standard": "element"},
+    "direction": {"Description": "what positive means", "Standard": "tested_direction"},
+    "n": {"Description": "subjects", "Standard": "n"},
+    "g": {"Description": "effect", "Standard": "effect_size", "EffectMeasure": "per_row"},
+    "g_measure": {"Description": "the row's effect measure", "Standard": "effect_measure"},
+    "lo": {"Description": "CI low", "Standard": "effect_ci_low"},
+    "hi": {"Description": "CI high", "Standard": "effect_ci_high"},
+    "p_raw": {"Description": "uncorrected p", "Standard": "p_uncorrected"},
+    "p": {"Description": "corrected p, in the row's family", "Standard": "p_value", "PKind": "per_family"},
+    "family": {"Description": "the row's correction family", "Standard": "correction_family"},
+    "mde_note": {"Description": "why no mde", "Standard": "mde_note"},
+}
+FAMILIES = [
+    {"id": "posthoc", "p_kind": "fwe", "method": "holm", "scope": "roi", "statement": "Holm over ROIs"},
+    {"id": "alpha_bh", "p_kind": "fdr", "method": "BH", "scope": "band", "members": "roi[2]",
+     "members_hash": "ab12", "statement": "BH-FDR q < 0.05 over ROIs within the band"},
+]
+
+
+def _eeg(**over):
+    a = {"id": "eeg/roi/aperiodic_rest", "title": "Aperiodic", "description": "1/f fits per ROI",
+         "analysis_type": "roi", "modality": "eeg", "domain": "aperiodic", "task": "rest",
+         "atlas": {"name": "allen26", "version": "1"},
+         "measures": ["aperiodic_exponent", "aperiodic_offset"], "role": "exploratory",
+         "design": {"n": 24, "groups": {"KO": 12, "WT": 12}, "sessions": 24, "timepoints": ["p60"]},
+         "inference": {"method": "LMM + emmeans", "families": FAMILIES},
+         "effect": {"measure": "per_row", "definition": "Hedges' g for contrasts, omega2 for omnibus rows",
+                    "ci_level": 0.95},
+         "tables": [{"path": "tests.csv", "role": "tests", "rows": "one contrast in one ROI and band",
+                     "description": "every test", "headline": True}],
+         "figures": [{"path": "fig.png", "caption": "g per ROI", "kind": "brain", "measure": "aperiodic_exponent",
+                      "contrast": "KO-WT", "facets": {"band": "alpha", "tier": "roi"}, "shows": "tests.csv",
+                      "headline": True, "drawn_by": "analysis"}]}
+    a.update(over)
+    return a
+
+
+def _eeg_table(f, columns=None, **values):
+    rows = {"measure": ["aperiodic_exponent", "aperiodic_offset"], "contrast": ["KO-WT"] * 2,
+            "band": ["alpha", "alpha"], "tier": ["roi", "roi"], "roi": ["V1", "M1"],
+            "direction": ["KO > WT"] * 2, "n": [24, 24], "g": [0.9, 0.1], "g_measure": ["g", "omega2"],
+            "lo": [0.1, -0.5], "hi": [1.7, 0.7], "p_raw": [0.01, 0.6], "p": [0.02, 0.6],
+            "family": ["posthoc", "alpha_bh"], "mde_note": ["not computed: mixed model"] * 2, **values}
+    pd.DataFrame(rows).to_csv(f / "tests.csv", index=False)
+    write_columns(f / "tests.csv", {**EEG_COLUMNS, **(columns or {})})
+
+
+@pytest.fixture
+def eeg(tmp_path):
+    f = tmp_path / "eeg"
+    f.mkdir()
+    _eeg_table(f)
+    (f / "fig.png").write_bytes(b"\x89PNG")
+    return f
+
+
+def _check_eeg(f, analysis=None, version=None):
+    a = analysis or _eeg()
+    if version:
+        a = {**a, "spec_version": version}
+    write_analysis(f, a, _prov(), strict=False)
+    (rep,) = check(f)
+    return rep
+
+
+def test_0_4_an_eeg_analysis_conforms(eeg):
+    rep = _check_eeg(eeg)
+    assert rep.ok and not rep.warnings, (rep.errors, rep.warnings)
+
+
+def test_0_4_a_0_3_folder_is_read_as_before_and_bumping_it_only_warns(folder):
+    """The step-2 rule: a 0.3 folder keeps conforming, and declaring 0.4 adds warnings at most."""
+    _with_mde(folder)
+    plain = dict(MDE_COLUMNS["mde_pct"])
+    plain.pop("PercentOf")
+    write_columns(folder / "tests.tsv", {**COLUMNS, **MDE_COLUMNS}, {"mde_pct": plain})
+    for version, warned in (("0.3.0", False), ("0.4.0", True)):
+        write_analysis(folder, {**_analysis(), "spec_version": version}, _prov(), strict=False)
+        (rep,) = check(folder)
+        assert rep.ok, rep.errors
+        assert any("PercentOf" in w for w in rep.warnings) is warned
+
+
+def test_0_4_features_are_not_for_older_folders(eeg):
+    rep = _check_eeg(eeg, version="0.3.0")
+    joined = " | ".join(rep.errors)
+    assert "are from 0.4; the folder declares 0.3" in joined
+    for feature in ("'atlas'", "'domain'", "'task'", "modality 'eeg'", "inference.families",
+                    "figures[].kind", "design.sessions"):
+        assert feature in joined, feature
+    assert "standard terms ['correction_family', 'effect_measure', 'p_uncorrected']" in joined
+    assert "qualifiers ['FacetName']" in joined
+    assert "values ['EffectMeasure per_row', 'PKind per_family']" in joined
+
+
+@pytest.mark.parametrize("inference, says", [
+    ({"method": "LMM", "families": FAMILIES, "correction": {"p_kind": "fdr", "family": "x", "statement": "x"}},
+     "gives both 'correction' and 'families'"),
+    ({"method": "LMM"}, "gives neither 'correction' and 'families'"),
+    ({"method": "LMM", "families": FAMILIES + [FAMILIES[0]]}, "declared more than once"),
+    ({"method": "LMM", "families": FAMILIES[:1]}, "names families inference does not declare: ['alpha_bh']"),
+])
+def test_0_4_correction_families(eeg, inference, says):
+    assert says in " | ".join(_check_eeg(eeg, _eeg(inference=inference)).errors)
+
+
+def test_0_3_still_needs_its_one_correction(folder):
+    a = _analysis()
+    a["inference"] = {"method": "Welch t"}
+    write_analysis(folder, {**a, "spec_version": "0.3.0"}, _prov(), strict=False)
+    assert "inference: missing required field 'correction'" in _errors(folder)
+
+
+def test_0_4_rows_name_their_family_when_there_are_several(eeg):
+    _eeg_table(eeg, family=["posthoc", ""])
+    assert "1 row(s) give a p-value but no correction family" in " | ".join(_check_eeg(eeg).errors)
+    cols = {k: v for k, v in EEG_COLUMNS.items() if k != "family"}
+    pd.read_csv(eeg / "tests.csv").drop(columns="family").to_csv(eeg / "tests.csv", index=False)
+    write_columns(eeg / "tests.csv", cols)
+    assert "needs a column marked 'correction_family'" in " | ".join(_check_eeg(eeg).errors)
+
+
+def test_0_4_a_p_value_kind_agrees_with_its_families(eeg):
+    _eeg_table(eeg, columns={"p": {**EEG_COLUMNS["p"], "PKind": "fdr"}})
+    assert "says PKind 'fdr', but its rows' families are ['fdr', 'fwe']" in " | ".join(_check_eeg(eeg).errors)
+    _eeg_table(eeg, family=["alpha_bh", "alpha_bh"], columns={"p": {**EEG_COLUMNS["p"], "PKind": "fdr"}})
+    assert _check_eeg(eeg).ok
+
+
+def test_0_4_per_family_needs_families(folder):
+    write_columns(folder / "tests.tsv", COLUMNS, {"p": {**COLUMNS["p"], "PKind": "per_family"}})
+    write_analysis(folder, _analysis(), _prov(), strict=False)
+    assert "but inference declares no families" in _errors(folder)
+
+
+def test_0_4_several_facets_are_each_named(eeg):
+    _eeg_table(eeg, columns={"tier": {"Description": "tier", "Standard": "facet"}})
+    assert "names each one ('FacetName'); 'tier' has none" in " | ".join(_check_eeg(eeg).errors)
+    _eeg_table(eeg, columns={"tier": {**EEG_COLUMNS["tier"], "FacetName": "band"}})
+    assert "facet 'band' claimed by both 'band' and 'tier'" in " | ".join(_check_eeg(eeg).errors)
+
+
+def test_0_4_figures_name_facets_and_tests_the_tables_have(eeg):
+    a = _eeg()
+    a["figures"][0]["facets"] = {"band": "alpha", "window": "early"}
+    rep = _check_eeg(eeg, a)
+    assert rep.ok and any("facets ['window'] are not named by" in w for w in rep.warnings), rep.warnings
+    a["figures"][0]["facets"] = {"band": "gamma", "tier": "roi"}
+    rep = _check_eeg(eeg, a)
+    assert any("names a test with no row in the tests table" in w for w in rep.warnings), rep.warnings
+
+
+@pytest.mark.parametrize("figure, says", [
+    ({"shows": "other.csv"}, "shows 'other.csv', which is not one of its tables"),
+])
+def test_0_4_a_figure_shows_a_listed_table(eeg, figure, says):
+    a = _eeg()
+    a["figures"][0].update(figure)
+    assert says in " | ".join(_check_eeg(eeg, a).errors)
+
+
+def test_0_4_one_headline_figure_and_brain_figures_name_their_atlas(eeg):
+    a = _eeg()
+    a["figures"].append({**a["figures"][0], "path": "fig.png"})
+    assert "more than one headline figure" in " | ".join(_check_eeg(eeg, a).errors)
+    a = _eeg(tables=[{**_eeg()["tables"][0], "role": "elements"}])
+    a.pop("atlas")
+    assert "needs the atlas its elements are parcels of" in " | ".join(_check_eeg(eeg, a).errors)
+
+
+def test_0_4_a_per_row_effect_names_each_rows_measure(eeg):
+    _eeg_table(eeg, g_measure=["g", ""])
+    assert "1 row(s) give an effect but not its measure" in " | ".join(_check_eeg(eeg).errors)
+
+
+@pytest.mark.parametrize("over, says", [
+    ({"domain": "vibes"}, "domain 'vibes' is not in the domain vocabulary"),
+    ({"domain": "metabolites"}, "domain 'metabolites' is for mrs, in a eeg analysis"),
+])
+def test_0_4_domains_warn_not_fail(eeg, over, says):
+    rep = _check_eeg(eeg, _eeg(**over))
+    assert rep.ok and any(says in w for w in rep.warnings), (rep.errors, rep.warnings)
+
+
+def test_0_4_task_is_a_bids_label(eeg):
+    assert "is not a BIDS task label" in " | ".join(_check_eeg(eeg, _eeg(task="resting state")).errors)
+
+
+def test_0_4_graph_metrics_belong_to_several_modalities(folder):
+    write_analysis(folder, _analysis(id="func/roi/demo", modality="func", measures=["global_efficiency"]),
+                   _prov(), strict=False)
+    (rep,) = check(folder)
+    assert not any("global_efficiency" in w for w in rep.warnings), rep.warnings
+
+
+def test_0_4_eeg_measures_are_written_by_their_canonical_names(eeg):
+    a = _eeg(measures=["exponent", "aperiodic_offset"])
+    assert "measure 'exponent' is written 'aperiodic_exponent'" in " | ".join(_check_eeg(eeg, a).errors)
+
+
+EQ = {"kind": {"Description": "test kind", "Standard": "test_kind"},
+      "margin": {"Description": "equivalence bound", "Standard": "margin", "Units": "Hedges' g"},
+      "equivalent": {"Description": "TOST concludes equivalence", "Standard": "equivalent"}}
+
+
+def test_0_4_an_equivalence_row_states_its_margin(eeg):
+    _eeg_table(eeg, columns=EQ, kind=["two_group", "equivalence"], margin=["", "0.5"], equivalent=["", "true"])
+    assert _check_eeg(eeg).ok
+    _eeg_table(eeg, columns=EQ, kind=["two_group", "equivalence"], margin=["", ""], equivalent=["", "true"])
+    assert "1 equivalence row(s) give no margin" in " | ".join(_check_eeg(eeg).errors)
+    _eeg_table(eeg, columns=EQ, kind=["two_group", "equivalence"], margin=["", "-1"], equivalent=["", "maybe"])
+    errors = " | ".join(_check_eeg(eeg).errors)
+    assert "(margin) is not a number above 0" in errors and "(equivalent) is not true/false" in errors
+
+
+BAYES = {
+    "post": {"Description": "posterior median of g", "Standard": "posterior_median"},
+    "hdi_lo": {"Description": "HDI low", "Standard": "hdi_low", "CILevel": 0.95},
+    "hdi_hi": {"Description": "HDI high", "Standard": "hdi_high", "CILevel": 0.95},
+    "pd": {"Description": "probability of direction", "Standard": "p_direction"},
+    "bf": {"Description": "Bayes factor", "Standard": "bf10", "Scale": "log10"},
+    "rope": {"Description": "share in the ROPE", "Standard": "p_rope", "Rope": "|g| < 0.1"},
+}
+
+
+def _bayes(eeg, scale="log10", **values):
+    cols = {k: v for k, v in EEG_COLUMNS.items() if k not in ("p", "p_raw", "family", "g", "g_measure", "lo", "hi")}
+    rows = {"measure": ["aperiodic_exponent", "aperiodic_offset"], "contrast": ["KO-WT"] * 2,
+            "band": ["alpha"] * 2, "tier": ["roi"] * 2, "roi": ["V1", "M1"], "direction": ["KO > WT"] * 2,
+            "n": [24, 24], "mde_note": ["not computed: Bayesian"] * 2, "post": [0.8, 0.1],
+            "hdi_lo": [0.2, -0.4], "hdi_hi": [1.4, 0.6], "pd": [0.99, 0.6], "bf": [1.2, -0.3],
+            "rope": [0.01, 0.4], **values}
+    pd.DataFrame(rows).to_csv(eeg / "tests.csv", index=False)
+    write_columns(eeg / "tests.csv", {**cols, **BAYES}, {"bf": {**BAYES["bf"], "Scale": scale}})
+    a = _eeg(inference={"method": "bayesian", "correction": {"p_kind": "none", "family": "none",
+                                                             "statement": "no correction: posterior summaries"}},
+             effect={"measure": "g", "definition": "posterior of Hedges' g"})
+    return _check_eeg(eeg, a)
+
+
+def test_0_4_a_bayesian_analysis_reports_posteriors_not_p_values(eeg):
+    rep = _bayes(eeg)
+    assert rep.ok and not rep.warnings, (rep.errors, rep.warnings)
+    rep = _bayes(eeg, pd=[0.99, ""])
+    assert "1 row(s) with no p_direction; every Bayesian row carries it" in " | ".join(rep.errors)
+    rep = _bayes(eeg, post=[0.8, 0.9])
+    assert "1 row(s) with a posterior median outside its HDI" in " | ".join(rep.errors)
+
+
+def test_0_4_a_linear_bayes_factor_is_positive(eeg):
+    assert _bayes(eeg, scale="linear", bf=[3.0, 0.5]).ok
+    rep = _bayes(eeg, scale="linear")
+    assert rep.errors == ["table 'tests.csv': 'bf' (bf10) is not a number above 0: ['-0.3']"], rep.errors
+
+
+def test_0_4_smallest_effect_of_interest_and_readings(eeg):
+    cols = {"sesoi": {"Description": "within-rat scatter", "Standard": "sesoi", "Basis": "repeat scans"},
+            "reading": {"Description": "what the row shows", "Standard": "reading",
+                        "Levels": {"effect": "beyond the scatter", "below_scatter": "detectable but smaller"}}}
+    _eeg_table(eeg, columns=cols, sesoi=[0.3, 0.3], reading=["effect", "below_scatter"])
+    rep = _check_eeg(eeg, _eeg(effect={**_eeg()["effect"], "sesoi": {"value": 0.3, "basis": "repeat scans"}}))
+    assert rep.ok, rep.errors
+    _eeg_table(eeg, columns=cols, sesoi=[0.3, 0], reading=["effect", "noise"])
+    errors = " | ".join(_check_eeg(eeg).errors)
+    assert "(sesoi) is not a number above 0" in errors
+    assert "(reading) has values its Levels do not define: ['noise']" in errors
+    _eeg_table(eeg, columns={"sesoi": {"Description": "x", "Standard": "sesoi"}}, sesoi=[0.3, 0.3])
+    assert "'sesoi' is 'sesoi' and must state Basis" in " | ".join(_check_eeg(eeg).errors)
+    a = _eeg(effect={**_eeg()["effect"], "sesoi": {"value": 0, "basis": "x"}})
+    assert "effect.sesoi.value must be above 0" in " | ".join(_check_eeg(eeg, a).errors)
+
+
+def test_0_4_a_decision_states_how_often_it_holds_with_no_effect(eeg):
+    decision = {"rule": "any cluster counts", "outcome": "holds",
+                "calibration": {"null_rate": 0.66, "datasets": 200, "method": "label reshuffles"},
+                "rests_on": ["tests.csv"]}
+    threshold = {"p_kind": "uncorrected", "alpha": 0.05, "statement": "TFCE p < 0.05 uncorrected"}
+    tables = [{**_eeg()["tables"][0], "threshold": threshold}]
+    assert _check_eeg(eeg, _eeg(decision=decision, tables=tables)).ok
+    bad = {**decision, "calibration": {"null_rate": 66, "method": "x"}, "rests_on": ["clusters.csv"]}
+    errors = " | ".join(_check_eeg(eeg, _eeg(decision=bad)).errors)
+    assert "null_rate 66 is not in [0, 1]" in errors
+    assert "rests on 'clusters.csv', which is not one of its tables" in errors
+
+
+def test_0_4_a_map_says_how_its_space_derives_from_a_template(folder):
+    (folder / "t.nii.gz").write_bytes(b"x")
+    m = {"path": "t.nii.gz", "kind": "stat", "description": "t", "space": "SIGMA_study",
+         "space_derivation": {"from": "SIGMA", "how": "transpose and two flips of the distributed template"}}
+    write_analysis(folder, _analysis(maps=[m], design={"n": 20, "sessions": 40, "timepoints": ["p60", "p90"]}),
+                   _prov(), strict=False)
+    (rep,) = check(folder)
+    assert rep.ok, rep.errors
+
+
+def test_0_4_one_named_facet_keeps_the_tests_0_3_identity(folder):
+    df = pd.read_csv(folder / "tests.tsv", sep="\t")
+    df["window"] = ["p60_to_p90", "p60_to_p90"]
+    df.to_csv(folder / "tests.tsv", sep="\t", index=False)
+    (folder / "fig.png").write_bytes(b"x")
+    write_columns(folder / "tests.tsv", COLUMNS,
+                  {"window": {"Description": "window", "Standard": "facet", "FacetName": "window"}})
+    for figure in ({"facets": {"window": "p60_to_p90"}}, {"facet": "p60_to_p90"}):
+        fig = {"path": "fig.png", "caption": "x", "measure": "FA", "contrast": "A>B", **figure}
+        write_analysis(folder, _analysis(figures=[fig]), _prov(), strict=False)
+        (rep,) = check(folder)
+        others = [w for w in rep.warnings if "no 'mde'" not in w]     # the fixture gives no MDE
+        assert rep.ok and not others, (figure, rep.errors, rep.warnings)

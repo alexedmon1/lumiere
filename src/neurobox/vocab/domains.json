@@ -1,0 +1,94 @@
+{
+ "_comment": "The results specification's domain vocabulary (0.4): what an analysis is about, the signal or tissue property, so a gallery can group analyses. Each domain names the modalities that use it. An analysis may give a domain not here (the checker warns) -- add it here, in neurobox-dev, with a CHANGELOG line.",
+ "spectral": {
+  "modalities": [
+   "eeg"
+  ],
+  "description": "oscillatory power in frequency bands"
+ },
+ "aperiodic": {
+  "modalities": [
+   "eeg"
+  ],
+  "description": "the aperiodic (1/f) part of the power spectrum"
+ },
+ "evoked": {
+  "modalities": [
+   "eeg"
+  ],
+  "description": "responses time-locked to stimuli: ERPs, ITC, ERSP"
+ },
+ "connectivity": {
+  "modalities": [
+   "eeg",
+   "func",
+   "dwi"
+  ],
+  "description": "undirected coupling between regions or channels, and the networks it forms"
+ },
+ "cross_frequency": {
+  "modalities": [
+   "eeg"
+  ],
+  "description": "coupling between rhythms: PAC, AAC, n:m phase coupling"
+ },
+ "directed": {
+  "modalities": [
+   "eeg"
+  ],
+  "description": "directed influence between regions: transfer entropy, DTF"
+ },
+ "decoding": {
+  "modalities": [
+   "eeg",
+   "func",
+   "anat",
+   "dwi"
+  ],
+  "description": "classifying groups or conditions from the data"
+ },
+ "localization": {
+  "modalities": [
+   "eeg"
+  ],
+  "description": "how well sources are localized: registration, coverage, settings"
+ },
+ "microstructure": {
+  "modalities": [
+   "dwi",
+   "msme"
+  ],
+  "description": "tissue microstructure: diffusion and myelin-water measures"
+ },
+ "morphometry": {
+  "modalities": [
+   "anat"
+  ],
+  "description": "size and shape: volumes, densities, Jacobians"
+ },
+ "relaxometry": {
+  "modalities": [
+   "msme",
+   "anat"
+  ],
+  "description": "relaxation times and their components"
+ },
+ "function": {
+  "modalities": [
+   "func"
+  ],
+  "description": "resting or task BOLD activity: ReHo, ALFF, fALFF"
+ },
+ "metabolites": {
+  "modalities": [
+   "mrs"
+  ],
+  "description": "metabolite concentrations from spectroscopy"
+ },
+ "perfusion": {
+  "modalities": [
+   "asl"
+  ],
+  "description": "blood flow and perfusion"
+ }
+}

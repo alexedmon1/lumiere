@@ -1,4 +1,4 @@
-# Results specification — `neurofaune.results` 0.3.0
+# Results specification — `neurofaune.results` 0.4.0
 
 What an analysis writes so that **anyone can read its results without the package
 that produced them**: a plain pandas script, a manuscript table, a study gallery.
@@ -16,13 +16,23 @@ its page shell is moving into neurobox-dev, so that each tool's `gallery build`
 (neurofaune for MRI, source-analytics for EEG) builds its studies' galleries from these
 files. The identifier in every file stays `"neurofaune.results"` until the final name.
 
-**Status: 0.3.0, draft.** It becomes 1.0.0 when one MRI study (cuprizone) and one EEG
+**Status: 0.4.0, draft.** It becomes 1.0.0 when one MRI study (cuprizone) and one EEG
 study (FORGE) both build their galleries from it end to end. Until then a minor version may change a field;
 from 1.0.0 on, versions follow semver and a reader written for 1.x reads every 1.y.
 0.2 adds identity and vocabulary (§3.1): what one analysis is, how it is named, and
 the words a reader groups analyses by; and runs (§3.2): the tests of one analysis run
 at different times, each run in a folder of its own. 0.3 adds the minimum detectable
 effect (§5.1): beside each test, the smallest difference its design could have detected.
+0.4 makes one schema cover EEG as well as MRI (the `eeg` modality, `domain`, `task` and
+`atlas`; §3.1), lets a table carry what EEG and Bayesian analyses report (named facets and
+correction families, equivalence tests, per-row effect measures, posteriors; §5.2-§5.5),
+and adds what cuprizone's first real run of the spec found missing (step 2 of the results
+plan, 2026-11-03): what an MDE percent is a percent of (§5.1), the smallest effect of
+interest and readings against it (§5.6), how often a decision rule holds with no effect
+and which rows it rests on (§3.4), a space derived from a template, and sessions and
+timepoints in the design (§3.5). Figures say what they are and what they show (§3.3).
+Every 0.4 addition is optional: a 0.3 folder conforms as it is, and one that only changes
+its `spec_version` to 0.4 gains warnings at most.
 
 ## 1. Principles
 
@@ -81,23 +91,26 @@ Fields marked * are required.
 | field | content |
 |---|---|
 | `spec`* | `"neurofaune.results"` |
-| `spec_version`* | `"0.3.0"` |
+| `spec_version`* | `"0.4.0"` |
 | `id`* | the analysis, stable across re-runs; from 0.2 `<modality>/<analysis_type>/<name>`, e.g. `"dwi/tbss/dose_p60"` (§3.1), shared by its runs (§3.2); a 0.1 id is unique under the results root |
 | `run`* (0.2) | this folder's run of the analysis: `{id*, label, supersedes}` (§3.2) |
 | `title`*, `description`* | a heading, and what the analysis asks in a sentence or two |
-| `analysis_type`* | `tbss`, `vbm`, `tbm`, `voxelwise`, `roi`, `covariance_network`, `nbs`, `graph`, `connectome`, `fixel`, `decoding`, `radiomics`, `spectroscopy`, `other` |
-| `modality`* (0.2) | `anat`, `dwi`, `func`, `msme`, `mrs`, `asl` or `multimodal` (§3.1) |
+| `analysis_type`* | `tbss`, `vbm`, `tbm`, `voxelwise`, `roi`, `covariance_network`, `nbs`, `graph`, `connectome`, `fixel`, `decoding`, `radiomics`, `spectroscopy`, `other`; from 0.4 also `sensor` (electrode-level tests), `vertex` (whole-brain source-space tests) and `directed` (directed connectivity edges) |
+| `modality`* (0.2) | `anat`, `dwi`, `func`, `msme`, `mrs`, `asl`, from 0.4 `eeg`, or `multimodal` (§3.1) |
+| `domain` (0.4) | what the analysis is about, from the domain vocabulary: `spectral`, `aperiodic`, `connectivity`, `microstructure`, … (§3.1) |
+| `task` (0.4) | the paradigm the data come from, by its BIDS task label: `rest`, `chirp`, `assr40` |
+| `atlas` (0.4) | `{name*, version}`: the parcellation that `element` values name (§3.5) |
 | `modalities` | a `multimodal` analysis's modalities, e.g. `["dwi", "func"]`; only then |
 | `measures` | the measured quantities, in display order, e.g. `["FA", "MD", "RD"]`; from 0.2 by their names in the measure vocabulary (§3.1) |
 | `role`* | `confirmatory`, `exploratory`, `descriptive` or `diagnostic` |
-| `design`* | `{n*, groups: {name: n}, test_kinds: [...], records: [paths to design.json]}` |
-| `inference`* | `{method*, correction*, n_permutations, notes}`; `correction` = `{p_kind*, family*, statement*, alpha}` (below) |
-| `effect`* | `{measure*, definition*, ci_level, scope}`, or `{measure: null, reason*}` where no effect size applies |
-| `tables`* | `[{path*, role*, rows*, description*, headline}]` (below) |
-| `maps` | `[{path*, kind*, description*, space, measure, contrast, facet, values, axes}]` |
-| `figures` | `[{path*, caption*, measure, contrast, facet}]` |
+| `design`* | `{n*, groups: {name: n}, test_kinds: [...], records: [paths to design.json], sessions, timepoints}`; `sessions` (0.4) the number of scans or recordings, `timepoints` (0.4) their labels in order (§3.5) |
+| `inference`* | `{method*, correction*, n_permutations, notes}`; `correction` = `{p_kind*, family*, statement*, alpha, method}` (below); from 0.4 `families` in place of `correction` (§5.2) |
+| `effect`* | `{measure*, definition*, ci_level, scope, sesoi}`, or `{measure: null, reason*}` where no effect size applies; `measure` is `per_row` (0.4) where it varies by row (§5.4); `sesoi` (0.4) is the smallest effect of interest (§5.6) |
+| `tables`* | `[{path*, role*, rows*, description*, headline, n_rows, threshold}]` (below); `threshold` (0.4) is what selected the rows (§3.4) |
+| `maps` | `[{path*, kind*, description*, space, measure, contrast, facet, values, axes, space_derivation}]`; `space_derivation` (0.4): §3.5 |
+| `figures` | `[{path*, caption*, measure, contrast, facet}]`; from 0.4 also `facets`, `kind`, `shows`, `headline`, `drawn_by` (§3.3) |
 | `display` | `{plane}`: `axial`, `coronal` or `sagittal`, the plane maps are best shown in (coronal for rodents) |
-| `decision` | where the analysis defines a decision rule: `{rule*, outcome*, criteria: [{name, description, passed}]}`; `outcome` is `holds`, `does_not_hold` or `not_assessed` |
+| `decision` | where the analysis defines a decision rule: `{rule*, outcome*, criteria: [{name, description, passed}], calibration, rests_on}`; `outcome` is `holds`, `does_not_hold` or `not_assessed`; `calibration` and `rests_on` (0.4): §3.4 |
 | `retired` | `{reason*, superseded_by}` — kept on disk, not to be read as current |
 | `caveats` | `[sentence, …]` that a reader must see beside the results |
 | `references` | `[{label, value}]`; the labels `registration` (a pre-registered hypothesis this analysis tests), `finding` (a recorded finding it reports) and `doi` have that meaning; any other label is opaque to the spec |
@@ -107,7 +120,10 @@ single test statistic), `uncorrected` or `none`. `family` says what the correcti
 is over ("voxels in the skeleton mask, per contrast"; "the 11 measures"). `statement`
 is the sentence a methods section would carry ("TFCE, FWE p < 0.05 by 5,000
 permutations, per contrast over the skeleton"). A table column may carry its own
-`PKind` (§5) where it differs — a cluster table's uncorrected minimum p, say.
+`PKind` (§5) where it differs — a cluster table's uncorrected minimum p, say. From 0.4
+`method` names the procedure (`BH`, `BY`, `holm`, `hochberg`, `bonferroni`, `tfce`,
+`cluster`, `maxT`, `nbs`, `none`, `other`), because `p_kind` says what is controlled but
+not how: Holm and BH are both "a correction", and only one of them is FDR.
 
 **`tables[].role`** — what one row is, so no reader guesses from a filename:
 
@@ -145,24 +161,36 @@ tables by method — is written by the producer, in words every producer uses:
 
 - **`modality`** is required and is one of `anat` (structural T1w/T2w: volumes,
   morphometry, VBM / TBM), `dwi`, `func`, `msme` (multi-echo relaxometry: T2, MWF),
-  `mrs`, `asl`, or `multimodal` with `modalities` listing at least two of the others.
+  `mrs`, `asl`, `eeg` (0.4; sensor or source space), or `multimodal` with `modalities`
+  listing at least two of the others.
 - **`id`** is `<modality>/<analysis_type>/<name>`: the folder's own modality and
   analysis type, then a name whose parts are lowercase letters, digits, `_`, `.` or
   `-` (`neurofaune.results.spec.analysis_id(modality, type, name...)` builds one). A
   reader can sort by the id alone; the id never contradicts the fields.
 - **`measures`** are written by their canonical names in the measure vocabulary,
-  `src/neurobox/vocab/measures.json` (canonical name → modality, description,
-  aliases: `FICVF` not `NDI`, `CSWF` not `CSFF`, `Cr+PCr` not `tCr`). A measure the
-  vocabulary does not have is allowed and warned about; it is added to the vocabulary,
-  in neurofaune, with a CHANGELOG line, rather than spelled anew by each producer.
+  `src/neurobox/vocab/measures.json` (canonical name → modality, or `modalities` for a
+  measure several use, such as graph metrics; description; aliases: `FICVF` not `NDI`,
+  `CSWF` not `CSFF`, `Cr+PCr` not `tCr`, and from 0.4 `aperiodic_exponent` not
+  `exponent`, `transfer_entropy` not `te`). A measure the vocabulary does not have is
+  allowed and warned about; it is added to the vocabulary, in neurobox-dev, with a
+  CHANGELOG line, rather than spelled anew by each producer.
+- **`domain`** (0.4, optional) is what the analysis is about — the signal or tissue
+  property — from the domain vocabulary, `src/neurobox/vocab/domains.json`, each domain
+  tagged with the modalities that use it: `spectral`, `aperiodic`, `evoked`,
+  `connectivity`, `cross_frequency`, `directed`, `decoding`, `localization` for EEG;
+  `microstructure`, `morphometry`, `relaxometry`, `function`, `metabolites`, `perfusion`
+  for MRI. A gallery groups by it. An EEG example: `id` `eeg/roi/aperiodic_rest`,
+  `domain` `aperiodic`, `task` `rest`.
+- **`task`** (0.4, optional) is the paradigm, by its BIDS task label (letters and digits).
 - **Tables name only listed measures**: a contract table's `measure` column holds
   names from `analysis.json`'s `measures`.
 
 The checker enforces these for folders that declare 0.2 (errors: a missing or unknown
 modality, an id that does not follow the pattern or contradicts the fields, a known
 measure under another spelling, a table measure not listed; warnings: a measure not in
-the vocabulary, a measure of another modality than the analysis's). A 0.1 folder is
-read by 0.1's rules.
+the vocabulary, a measure of another modality than the analysis's), and from 0.4 the
+`domain` and `task` (an error: a task that is not a BIDS label; warnings: a domain not in
+the vocabulary, or of another modality). A 0.1 folder is read by 0.1's rules.
 
 ### 3.2 Runs: tests of one analysis run at different times (0.2)
 
@@ -202,6 +230,50 @@ again as one new run that supersedes the old ones.
 Fields that describe the analysis rather than the run (`title`, `description`,
 `measures`) may differ between runs as the analysis grows; a reader takes them from the
 latest current run and lists the union of the measures.
+
+### 3.3 Figures (0.4)
+
+A gallery lays figures out and filters them by fields, never by file names, so a figure
+may say:
+
+| field | content |
+|---|---|
+| `facets` | `{name: value}` for the test it belongs to, by the tables' facet names (§5.2), e.g. `{"band": "gamma", "tier": "region"}` |
+| `kind` | `brain` (a map or parcel rendering), `matrix` (connectivity), `spectrum`, `distribution` (box or violin), `trajectory`, `summary` (a heatmap over tests), `diagnostic`, `other` |
+| `shows` | the table it was drawn from, one of `tables[].path` |
+| `headline` | true on the one figure to show first |
+| `drawn_by` | `analysis` (written with the results) or `gallery` (drawn by the tool when it built the gallery, so it can be redrawn) |
+
+A figure that names a test (`measure`, `contrast`, `facet` or `facets`) matches a row of
+the tests table; one that does not is warned about.
+
+### 3.4 Decisions and their reliability (0.4)
+
+A decision rule that also holds on data with no effect does not separate an effect from
+none, and a reader of `outcome` alone cannot know. So a decision may state:
+
+- **`calibration`** `{null_rate*, method*, datasets}`: the share of datasets with no
+  effect (label reshuffles, simulations: `method`, `datasets` of them) in which the rule
+  also holds. cuprizone's H008 holds in 66% of reshuffled datasets: `{"null_rate": 0.66,
+  "method": "label reshuffles", "datasets": 200}`. A reader shows it beside `outcome`.
+- **`rests_on`**: the tables (by `path`) whose rows the rule counts. A rule that counts
+  clusters at an uncorrected threshold rests on a cluster table at that threshold, which
+  the analysis then lists, with the table's own **`threshold`** `{p_kind*, statement*,
+  alpha, method}` saying what selected its rows (`"TFCE p < 0.05, uncorrected"`) beside
+  the corrected one.
+
+### 3.5 Spaces, atlases and designs (0.4)
+
+- A map in a space **derived from a template** — flipped, transposed, resampled — keeps
+  the name it is known by in `space` and says how it relates in **`space_derivation`**
+  `{from*, how*}`: `{"from": "SIGMA", "how": "the study-space SIGMA: a transpose and two
+  flips of the distributed template"}`. A reader who overlays on the named template
+  itself sees that it must not.
+- **`atlas`** `{name*, version}` names the parcellation that an `elements` table's
+  `element` values come from, as `space` does for maps. An analysis with an `elements`
+  table and a figure of `kind` `brain` states it.
+- **`design.sessions`** is the number of scans or recordings when it is not `n` (longitudinal
+  designs), and **`design.timepoints`** their labels in order (`["p60", "p90", "p120"]`).
 
 ## 4. `provenance.json`
 
@@ -247,29 +319,29 @@ A reader shows a run whose status is not `completed` as such, never silently.
   `Standard` maps the column to the vocabulary below, so a reader finds "the
   effect size" without knowing the producer's column names. A standard term is
   claimed by at most one column per table -- except `subgroup_effect` and `subgroup_n`,
-  claimed once per subgroup.
+  claimed once per subgroup, and from 0.4 `facet`, claimed once per named facet (§5.2).
 
 **Standard terms** (qualifiers in brackets; * = required with the term):
 
 | term | meaning |
 |---|---|
 | `measure` | the measured quantity of the row (FA, ReHo, …) |
-| `contrast` | test identifier within the analysis; `measure` + `contrast` (+ `facet`) identify a test |
+| `contrast` | test identifier within the analysis; `measure` + `contrast` (+ `facet`, or from 0.4 every named facet) identify a test |
 | `contrast_label` | the contrast in words |
-| `facet` | any further split of the tests (window, timepoint, family) |
+| `facet` | any further split of the tests (window, timepoint, family); from 0.4 [`FacetName`] when a table has several (§5.2) |
 | `element` | per-element rows: the cluster id, ROI name, edge `"A -- B"`, component id |
-| `test_kind` | `two_group`, `one_sample`, `regression`, `interaction`, `custom` |
+| `test_kind` | `two_group`, `one_sample`, `regression`, `interaction`, `custom`; from 0.4 `equivalence` (§5.3) |
 | `tested_direction` | what a positive statistic means, in words: `"cuprizone > control"`, `"mean > 0"` |
 | `observed_direction` | the direction the effect actually went, in the same words |
 | `group_a`, `group_b` | two-group tests: `group_a` is higher when the statistic is positive |
 | `n`, `n_a`, `n_b`, `df` | sample sizes and error degrees of freedom |
-| `effect_size` | [`EffectMeasure`*: `d`, `g`, `r`, `beta`, `eta2`, …; `EffectScope`] |
+| `effect_size` | [`EffectMeasure`*: `d`, `g`, `r`, `beta`, `eta2`, …, or from 0.4 `per_row` (§5.4); `EffectScope`] |
 | `effect_ci_low`, `effect_ci_high` | [`CILevel`] bounds on `effect_size` |
 | `effect_selected` | true where the effect was computed on elements chosen for significance (inflated) |
 | `estimate` | the contrast in raw units [`Units`] |
 | `mean_a`, `mean_b`, `mean` | group means / the one-sample mean [`Units`] |
 | `stat` | [`StatName`*: `t`, `F`, `z`, …; `StatScope`: `peak`, `element`] |
-| `p_value` | [`PKind`*; `PScope`] |
+| `p_value` | [`PKind`*, from 0.4 also `per_family` (§5.2); `PScope`] |
 | `significant` | [`Alpha`] |
 | `n_significant` | elements (voxels, edges) significant under the correction [`Units`, `PKind`, `Alpha`] |
 | `frac_significant` | the same as a fraction of the mask / network |
@@ -282,8 +354,20 @@ A reader shows a run whose status is not `completed` as such, never silently.
 | `subgroup_n` | [`Subgroup`*] that subgroup's size |
 | `se` (0.3) | standard error of `estimate` from the fitted model (covariates included), in its units |
 | `mde` (0.3) | [`Power`*, `Alpha`*] minimum detectable effect, in `estimate`'s units (§5.1) |
-| `mde_percent` (0.3) | `mde` as a percent of the reference group's mean (§5.1) |
+| `mde_percent` (0.3) | `mde` as a percent of the reference group's mean (§5.1); from 0.4 [`PercentOf`] says of what |
 | `mde_note` (0.3) | empty when `mde` is given; otherwise why not, starting `not computed: ` |
+| `correction_family` (0.4) | the row's correction family, one of `inference.families[].id` (§5.2) |
+| `p_uncorrected` (0.4) | the raw p, beside the corrected `p_value` |
+| `effect_measure` (0.4) | the row's effect measure, where `effect_size` says `per_row` (§5.4) |
+| `margin` (0.4) | [`Units`*] the equivalence bound of the row (§5.3) |
+| `equivalent` (0.4) | true where an equivalence test concludes equivalence |
+| `posterior_median` (0.4) | the posterior median of the effect [`Units`] (§5.5) |
+| `hdi_low`, `hdi_high` (0.4) | [`CILevel`*] the highest-density interval |
+| `p_direction` (0.4) | the posterior probability of the effect's direction |
+| `p_rope` (0.4) | [`Rope`*: the region of practical equivalence] the posterior share inside it |
+| `bf10` (0.4) | [`Scale`*: `log10` or `linear`] the Bayes factor for an effect over none |
+| `sesoi` (0.4) | [`Basis`*] the row's smallest effect of interest, in `estimate`'s units (§5.6) |
+| `reading` (0.4) | [`Levels`*] what the row shows, one of its `Levels` (§5.6) |
 
 Columns with no standard term are welcome; their dictionary entry describes them.
 
@@ -309,7 +393,13 @@ se 1, df 10 → 3.107197; se 1, df 26 → 2.911195; se 2.09, df 24 → 6.104376;
 `mde_percent` is `100 * mde / |reference mean|`, the reference being the reference
 group's mean (the control, the baseline) on the estimate's scale. It is empty where
 there is no reference group (a regression slope, a one-sample mean) or the mean is near
-zero; the column's description says which group is the reference.
+zero; the column's description says which group is the reference. From 0.4 the column's
+**`PercentOf`** says what the percent is of, in words, because the estimate's scale is not
+always the measure's: in a test of a difference in change, the reference mean is the
+controls' mean *change*, and a percent of it (cuprizone: a median 65%) reads very
+differently from a percent of the measure's mean. `PercentOf: "the controls' mean change
+from p60 to p90"` makes that plain; a 0.4 `mde_percent` without it is warned about. MDE
+terms may be given on `elements` rows as well as `tests` rows.
 
 **Never blank without a reason.** A row whose `mde` is empty says why in `mde_note`,
 starting `not computed: ` — `not computed: voxelwise map, corrected by randomise`,
@@ -317,6 +407,65 @@ starting `not computed: ` — `not computed: voxelwise map, corrected by randomi
 standard error`. A voxelwise map has no closed-form detectable effect (its permutation
 correction depends on the effect's spatial extent); a cluster's effect is measured on
 the voxels the test chose. A row that gives an `mde` leaves the note empty.
+
+### 5.2 Named facets and correction families (0.4)
+
+**Facets.** A table whose tests split several ways — EEG's band and spatial tier, say —
+gives each split a `facet` column naming itself with **`FacetName`**: `band`, `tier`,
+`window`, `freq_pair`, `metric`, `timepoint`. A test is then `measure` + `contrast` + every
+facet; facet names are unique within a table. A single `facet` column needs no name, and
+keeps its 0.3 meaning.
+
+**Correction families.** One analysis — one EEG module on one paradigm — often corrects
+its tests in several families (per band, per hypothesis). In place of the one
+`inference.correction`, it then gives
+
+```json
+"families": [
+  {"id": "alpha_bh", "p_kind": "fdr", "method": "BH", "scope": "band", "members": "roi[26]",
+   "members_hash": "…", "statement": "BH-FDR q < 0.05 over the 26 ROIs within the band"},
+  {"id": "posthoc", "p_kind": "fwe", "method": "holm", "statement": "Holm over ROIs"}
+]
+```
+
+and each row names its family in a **`correction_family`** column (required when there are
+several). The `p_value` column's `PKind` is the families' shared kind, or `per_family`
+where they differ. Corrections are still never pooled: each test is corrected within its
+own family. An analysis gives `correction` or `families`, not both. A table may carry the raw
+p beside the corrected one as **`p_uncorrected`**.
+
+### 5.3 Equivalence tests (0.4)
+
+A row whose `test_kind` is `equivalence` (two one-sided tests) states its bound in a
+**`margin`** column (or a `sesoi` column, §5.6), with its `Units`, and may say in
+**`equivalent`** whether the test concludes equivalence. A table of equivalence tests alone
+may give `equivalent` and `margin` in place of `p_value`.
+
+### 5.4 Effect measures that vary by row (0.4)
+
+A table that mixes omnibus, contrast and regression rows gives `effect_size` the
+`EffectMeasure` `per_row` and names each row's measure in an **`effect_measure`** column
+(`g`, `omega2_partial`, `std_beta`); `effect.measure` in `analysis.json` may say `per_row`
+too. A reader filters by measure before comparing effects.
+
+### 5.5 Bayesian results (0.4)
+
+An analysis whose `inference.method` is `bayesian` reports, on every `tests` and
+`elements` row, **`posterior_median`** with **`hdi_low`** and **`hdi_high`** (its `CILevel`)
+as the magnitude and **`p_direction`** as the evidence, in place of `effect_size` with its
+interval and `p_value`; **`p_rope`** (with its `Rope`) and **`bf10`** (with its `Scale`) are
+optional. The checker requires the four on every row, and the median within its interval.
+Its `correction` is `{"p_kind": "none", …}`, saying so in its statement.
+
+### 5.6 The smallest effect of interest (0.4)
+
+The MDE (§5.1) is what a design could detect; the **smallest effect of interest** is the
+effect agreed, before reading the results, to count as real — cuprizone's within-rat scatter
+across repeat scans, an equivalence margin. An analysis gives one value in
+`effect.sesoi` `{value*, basis*, units}`, or per row in a **`sesoi`** column with its
+`Basis`. A study's readings against it ("an effect", "below the scatter", "no effect as large
+as the scatter", "undetermined") go in a **`reading`** column, whose `Levels` define every
+value it uses.
 
 ## 6. The reporting contract
 
@@ -332,11 +481,15 @@ the voxels the test chose. A row that gives an `mde` leaves the note empty.
   `effect = {measure: null, reason}`;
 - sample: `n`, or `n_a` and `n_b`;
 - significance: `p_value` with its `PKind`; the family it is corrected over is in
-  `analysis.json`;
+  `analysis.json` (from 0.4, with several families, each row names its own: §5.2);
 - extent, for voxelwise tests: `n_significant` or `frac_significant`;
 - what the design could detect (0.3): `mde` with its `Power` and `Alpha`, or an
   `mde_note` on each row saying why not (§5.1). A tests table with neither is warned
-  about, not refused.
+  about, not refused;
+- from 0.4: an `equivalence` row gives its `margin` (§5.3); a `per_row` effect names each
+  row's measure (§5.4); a Bayesian analysis gives `posterior_median`, `hdi_low`,
+  `hdi_high` and `p_direction` on every row in place of the effect, its interval and
+  `p_value` (§5.5).
 
 **`clusters`** — every cluster under a stated definition:
 - which test: `contrast` (and `measure`), matching a `tests` row;
@@ -369,8 +522,16 @@ each analysis against each other (§3.2), and for folders that declare 0.3 the m
 detectable effect (§5.1): an `mde` is positive, with `Power` and `Alpha` between 0 and 1;
 a row without one carries an `mde_note` starting `not computed: `; an `mde_percent` is
 positive and only beside an `mde`; an `se` is a number >= 0. A folder that declares an
-earlier version may not use the 0.3 terms. Each folder is checked by the rules of the version
-it declares. Exit status 0 when every
+earlier version may not use the 0.3 terms. For folders that declare 0.4 it also checks the 0.4
+additions where they are used: each `correction_family` names a declared family, and each
+row names one when there are several; a `p_value`'s `PKind` agrees with its rows' families;
+several facets are each named, once; a figure's `shows` is one of the tables and its
+`facets` are names the tables use; one headline figure; an `atlas` beside a brain figure of
+an `elements` table; the equivalence, per-row and Bayesian rules above; `margin` and `sesoi`
+above 0, a linear `bf10` above 0, a `reading` within its `Levels`, a `calibration.null_rate`
+within [0, 1], and `rests_on` naming listed tables. A folder that declares an earlier
+version may not use any 0.4 field, term, qualifier or value. Each folder is checked by the
+rules of the version it declares. Exit status 0 when every
 folder conforms. The schemas in `src/neurobox/schemas/` are plain JSON Schema
 (draft 2020-12) and work with any validator; the checker itself needs only the
 standard library, so it can run where no producer's dependencies are installed.
@@ -378,7 +539,7 @@ standard library, so it can run where no producer's dependencies are installed.
 ## 8. Versioning
 
 `spec_version` is semver. A reader accepts any version with the major version it
-was written for — while the major is 0, every minor up to its own (a 0.3 reader reads
-0.1, 0.2 and 0.3) — and reports, never guesses, a field it does not know. Producers write
+was written for — while the major is 0, every minor up to its own (a 0.4 reader reads
+0.1 to 0.4) — and reports, never guesses, a field it does not know. Producers write
 the version they were built against. Changes are listed in neurobox-dev's
 `CHANGELOG.md`.

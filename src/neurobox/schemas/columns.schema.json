@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/alexedmon1/neurofaune/neurofaune/results/schemas/columns.schema.json",
+  "$id": "https://github.com/alexedmon1/neurobox-dev/src/neurobox/schemas/columns.schema.json",
   "title": "neurofaune.results column dictionary (<table>.json)",
   "type": "object",
   "minProperties": 1,
@@ -17,18 +17,26 @@
                             "effect_selected", "estimate", "mean_a", "mean_b", "mean", "stat",
                             "p_value", "significant", "n_significant", "frac_significant", "n_voxels",
                             "volume_mm3", "peak_xyz_mm", "peak_region", "regions", "crosses_midline",
-                            "subgroup_effect", "subgroup_n", "se", "mde", "mde_percent", "mde_note"]},
+                            "subgroup_effect", "subgroup_n", "se", "mde", "mde_percent", "mde_note",
+                            "correction_family", "p_uncorrected", "effect_measure", "margin",
+                            "equivalent", "posterior_median", "hdi_low", "hdi_high", "p_direction",
+                            "p_rope", "bf10", "sesoi", "reading"]},
       "EffectMeasure": {"type": "string", "minLength": 1},
       "EffectScope": {"type": "string"},
       "CILevel": {"type": "number", "minimum": 0},
       "StatName": {"type": "string", "minLength": 1},
       "StatScope": {"type": "string"},
-      "PKind": {"enum": ["fwe", "fdr", "perm", "uncorrected", "none"]},
+      "PKind": {"enum": ["fwe", "fdr", "perm", "uncorrected", "none", "per_family"]},
       "PScope": {"type": "string"},
       "Alpha": {"type": "number", "minimum": 0},
       "Power": {"type": "number", "minimum": 0},
       "Space": {"type": "string", "minLength": 1},
-      "Subgroup": {"type": "string", "minLength": 1}
+      "Subgroup": {"type": "string", "minLength": 1},
+      "FacetName": {"type": "string", "minLength": 1},
+      "PercentOf": {"type": "string", "minLength": 1},
+      "Rope": {"type": "string", "minLength": 1},
+      "Scale": {"enum": ["log10", "linear"]},
+      "Basis": {"type": "string", "minLength": 1}
     }
   }
 }
