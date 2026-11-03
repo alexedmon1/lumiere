@@ -128,3 +128,16 @@ def test_cli_builds_from_a_json_settings_file(study, capsys):
     (study / "gallery.json").write_text(json.dumps(SETTINGS))
     assert main(["gallery", str(study)]) == 0
     assert capsys.readouterr().out.strip().endswith("index.html")
+
+
+def test_a_folder_the_shell_did_not_build_is_never_replaced(study):
+    other = study / "gallery"
+    other.mkdir()
+    (other / "index.html").write_text("another tool's gallery")
+    with pytest.raises(gallery.GalleryError, match="was not built by this shell"):
+        gallery.build(study, SETTINGS)
+    assert (other / "index.html").read_text() == "another tool's gallery"
+    (other / "index.html").unlink()
+    gallery.build(study, SETTINGS)                        # empty: fine
+    gallery.build(study, SETTINGS)                        # its own: rebuilt
+    assert (other / gallery.MARKER).is_file()

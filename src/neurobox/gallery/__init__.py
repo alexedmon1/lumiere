@@ -48,6 +48,8 @@ from ..check import check, read_table
 from ..spec import ANALYSIS_JSON, PROVENANCE_JSON, SPEC_VERSION
 
 HERE = Path(__file__).parent
+#: Marks a folder this shell built, which a rebuild may replace.
+MARKER = ".neurobox-gallery"
 #: Rows of a table embedded in the page; the full table is copied and linked.
 MAX_ROWS = 500
 MATCH_FIELDS = ("analysis_type", "modality", "domain", "role", "task", "measures", "id")
@@ -220,6 +222,9 @@ def build(study: Path, settings: dict | None = None, out: Path | None = None) ->
     if dest == study or dest in roots:
         raise GalleryError(f"the gallery folder {dest} would replace the study's own files")
     if dest.exists():
+        if any(dest.iterdir()) and not (dest / MARKER).is_file():
+            raise GalleryError(f"{dest} is not empty and was not built by this shell (no {MARKER}); "
+                               "choose another output folder, or move it away first")
         shutil.rmtree(dest)
     (dest / "files").mkdir(parents=True)
 
@@ -304,5 +309,6 @@ def build(study: Path, settings: dict | None = None, out: Path | None = None) ->
     page = string.Template((HERE / "index.html").read_text()).substitute(
         title=html.escape(manifest["title"]), manifest=data, built=html.escape(built))
     (dest / "index.html").write_text(page, encoding="utf-8")
+    (dest / MARKER).write_text(f"built {built}; rebuilt by neurobox.gallery.build, never edited\n")
     return dest / "index.html"
 
