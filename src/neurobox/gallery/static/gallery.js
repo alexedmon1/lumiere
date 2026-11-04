@@ -1050,11 +1050,8 @@
     return null;
   }
   function initThemeToggle() {
-    var saved = stored();
-    if (saved) document.documentElement.setAttribute("data-theme", saved);
-    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
-      document.documentElement.setAttribute("data-theme", "light");
-    }
+    var saved = stored();                // dark unless the reader chose light
+    document.documentElement.setAttribute("data-theme", saved === "light" ? "light" : "dark");
     document.getElementById("theme-toggle").addEventListener("click", function () {
       var next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
       document.documentElement.setAttribute("data-theme", next);
