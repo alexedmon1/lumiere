@@ -227,6 +227,13 @@
   "modality": "eeg",
   "description": "relative band power: the band's fraction of total power"
  },
+ "delta_referenced_power": {
+  "modality": "eeg",
+  "description": "band power referenced to a low-frequency anchor window: the band's mean power density over the anchor's, dB",
+  "aliases": [
+   "delta_ref"
+  ]
+ },
  "aperiodic_exponent": {
   "modality": "eeg",
   "description": "aperiodic (1/f) exponent of the power spectrum (specparam/FOOOF)",
@@ -309,6 +316,10 @@
  "ppc": {
   "modality": "eeg",
   "description": "n:m phase-phase coupling (phase-locking factor)"
+ },
+ "ppc_z": {
+  "modality": "eeg",
+  "description": "n:m phase-phase coupling z-scored against surrogates"
  },
  "itc": {
   "modality": "eeg",

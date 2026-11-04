@@ -24,6 +24,16 @@
       "required": ["name"],
       "properties": {"name": {"type": "string", "minLength": 1}, "version": {"type": "string"}}
     },
+    "variant": {
+      "type": "object",
+      "required": ["of", "axis", "value"],
+      "properties": {
+        "of": {"type": "string", "minLength": 1},
+        "axis": {"type": "string", "minLength": 1},
+        "value": {"type": "string", "minLength": 1},
+        "label": {"type": "string"}
+      }
+    },
     "role": {"enum": ["confirmatory", "exploratory", "descriptive", "diagnostic"]},
     "design": {
       "type": "object",
@@ -37,6 +47,23 @@
         "records": {"type": "array", "items": {"type": "string"}},
         "sessions": {"type": "integer", "minimum": 1},
         "timepoints": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "contrasts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "label": {"type": "string"},
+          "kind": {"enum": ["omnibus", "contrast", "equivalence", "regression", "other"]},
+          "group_a": {"type": "string", "minLength": 1},
+          "group_b": {"type": "string", "minLength": 1},
+          "tier": {"type": "string", "minLength": 1},
+          "role": {"enum": ["confirmatory", "exploratory", "descriptive", "diagnostic"]},
+          "gate_on": {"type": "array", "items": {"type": "string", "minLength": 1}}
+        }
       }
     },
     "inference": {
@@ -102,7 +129,7 @@
         "required": ["path", "role", "rows", "description"],
         "properties": {
           "path": {"type": "string", "minLength": 1},
-          "role": {"enum": ["tests", "clusters", "elements", "descriptives", "other"]},
+          "role": {"enum": ["tests", "clusters", "elements", "descriptives", "recordings", "other"]},
           "rows": {"type": "string", "minLength": 1},
           "description": {"type": "string", "minLength": 1},
           "headline": {"type": "boolean"},

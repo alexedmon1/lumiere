@@ -3,6 +3,30 @@
 The specification's identifier is `neurofaune.results`; it moved from neurofaune to
 neurobox-dev (a working name) on 2026-11-03.
 
+## 0.4.1 — 2026-11-04
+
+What source-lightbox's study galleries need that the specification did not say (Esprit's
+results plan, step 5b.3), so the shared gallery reads it instead of guessing. All optional:
+a 0.4.0 folder conforms unchanged.
+
+- **`contrasts`** in `analysis.json` (§3.6): each contrast the tables test, with its label,
+  kind, groups, `tier` (the study's grouping: phenotype, rescue, normalization), its own
+  `role` where it differs from the analysis's, and `gate_on`. Where given, every `contrast`
+  value in a contract table is one of its ids.
+- **`variant`** (§3.7): `{of, axis, value, label}` ties one analysis across reconstructions,
+  pipelines or templates; the id is `of` with `value` among its later parts, and one variant
+  is one id across the results.
+- **`recordings`** table role (§5.7), with the standard terms **`subject`** (required),
+  **`group`**, **`session`** and **`qc_flag`** (`Rule`*), and the qualifier **`QCMetric`**
+  for the columns quality checks look at.
+
+## Vocabulary — 2026-11-04 (spec 0.4.0)
+
+Two EEG measures that source-analytics' `roi_psd`, `electrode_psd` and `roi_cross_freq` test:
+`delta_referenced_power` (alias `delta_ref`), a band's power density referenced to a
+low-frequency anchor window in dB, and `ppc_z`, n:m phase-phase coupling z-scored against
+surrogates, which is tested beside the raw `ppc` and so needs its own name.
+
 ## Gallery shell — 2026-11-03 (spec still 0.4.0)
 
 `neurobox.gallery.build(study, settings, out=None)` and `python -m neurobox gallery <study>`:

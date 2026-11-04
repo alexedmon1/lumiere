@@ -879,3 +879,103 @@ def test_0_4_one_named_facet_keeps_the_tests_0_3_identity(folder):
         (rep,) = check(folder)
         others = [w for w in rep.warnings if "no 'mde'" not in w]     # the fixture gives no MDE
         assert rep.ok and not others, (figure, rep.errors, rep.warnings)
+
+
+# ── 0.4.1: declared contrasts, variants, recordings ──────────────────────────────────
+
+CONTRASTS = [{"id": "KO-WT", "label": "KO vs WT", "kind": "contrast", "group_a": "KO", "group_b": "WT",
+              "tier": "phenotype", "role": "confirmatory"}]
+
+
+def test_0_4_1_declared_contrasts_conform(eeg):
+    rep = _check_eeg(eeg, _eeg(contrasts=CONTRASTS))
+    assert rep.ok and not rep.warnings, (rep.errors, rep.warnings)
+
+
+@pytest.mark.parametrize("contrasts, says", [
+    ([{"id": "WT-KO"}], "are not among analysis.json's contrasts"),
+    ([*CONTRASTS, {"id": "KO-WT"}], "declared more than once"),
+    ([{**CONTRASTS[0], "gate_on": ["omnibus"]}], "gated on 'omnibus', which is not one of the contrasts"),
+    ([{**CONTRASTS[0], "gate_on": ["KO-WT"]}], "gated on itself"),
+])
+def test_0_4_1_contrast_errors(eeg, contrasts, says):
+    rep = _check_eeg(eeg, _eeg(contrasts=contrasts))
+    assert says in " | ".join(rep.errors), rep.errors
+
+
+def test_0_4_1_a_contrast_of_unknown_groups_is_warned_about(eeg):
+    rep = _check_eeg(eeg, _eeg(contrasts=[{**CONTRASTS[0], "group_b": "HET"}]))
+    assert rep.ok and any("names groups ['HET']" in w for w in rep.warnings), rep.warnings
+
+
+VARIANT = {"of": "eeg/roi/aperiodic", "axis": "reconstruction", "value": "cartesian_mc", "label": "MC Cartesian"}
+
+
+def test_0_4_1_a_variant_conforms_and_must_match_its_id(eeg):
+    rep = _check_eeg(eeg, _eeg(id="eeg/roi/aperiodic/cartesian_mc", variant=VARIANT))
+    assert rep.ok and not rep.warnings, (rep.errors, rep.warnings)
+    rep = _check_eeg(eeg, _eeg(id="eeg/roi/aperiodic/shell_mc", variant=VARIANT))
+    assert "variant.value 'cartesian_mc' is not a part of the id" in " | ".join(rep.errors)
+    rep = _check_eeg(eeg, _eeg(id="eeg/roi/psd/cartesian_mc", variant=VARIANT))
+    assert "is not the start of the id" in " | ".join(rep.errors)
+
+
+def test_0_4_1_two_analyses_may_not_claim_one_variant(tmp_path):
+    for name in ("a", "b"):
+        f = tmp_path / name
+        f.mkdir()
+        _eeg_table(f)
+        (f / "fig.png").write_bytes(b"\x89PNG")
+        write_analysis(f, _eeg(id=f"eeg/roi/aperiodic/cartesian_mc/{name}", variant=VARIANT), _prov(),
+                       strict=False)
+    reps = check(tmp_path)
+    assert all("is claimed by 2 analyses" in " | ".join(r.errors) for r in reps)
+
+
+def test_0_4_1_fields_are_not_for_older_folders(folder):
+    _with_mde(folder)
+    write_analysis(folder, {**_analysis(), "spec_version": "0.3.0", "contrasts": [{"id": "c"}]}, _prov(),
+                   strict=False)
+    assert "['contrasts'] are from 0.4; the folder declares 0.3" in _errors(folder)
+
+
+RECORDING_COLUMNS = {
+    "subject_id": {"Description": "subject", "Standard": "subject"},
+    "group": {"Description": "treatment group", "Standard": "group"},
+    "session": {"Description": "session", "Standard": "session"},
+    "cond": {"Description": "forward-model condition number", "QCMetric": True},
+    "outlier_flag": {"Description": "flagged", "Standard": "qc_flag",
+                     "Rule": "|z| > 2 against the study on any QCMetric column"},
+}
+
+
+def _recordings(f, columns=None, **values):
+    rows = {"subject_id": ["s1", "s2"], "group": ["KO", "WT"], "session": ["01", "01"], "cond": [1e4, 9e5],
+            "outlier_flag": ["False", "True"], **values}
+    pd.DataFrame(rows).to_csv(f / "recordings.csv", index=False)
+    write_columns(f / "recordings.csv", {**RECORDING_COLUMNS, **(columns or {})})
+    a = _eeg(id="eeg/roi/localization", domain="localization", role="diagnostic", measures=[],
+             effect={"measure": None, "reason": "a diagnostic summary; nothing is tested"},
+             inference={"method": "none", "correction": {"p_kind": "none", "family": "none",
+                                                          "statement": "no tests"}},
+             tables=[{"path": "recordings.csv", "role": "recordings", "rows": "one recording",
+                      "description": "every recording, with its quality checks"}], figures=[])
+    write_analysis(f, a, _prov(), strict=False)
+    (rep,) = check(f)
+    return rep
+
+
+def test_0_4_1_a_recordings_table_conforms(folder):
+    rep = _recordings(folder)
+    assert rep.ok and not rep.warnings, (rep.errors, rep.warnings)
+
+
+def test_0_4_1_recordings_rules(folder):
+    rep = _recordings(folder, columns={"subject_id": {"Description": "subject"}})
+    assert "which subject -- needs a column marked 'subject'" in " | ".join(rep.errors)
+    rep = _recordings(folder, columns={"outlier_flag": {"Description": "flagged", "Standard": "qc_flag"}})
+    assert "is 'qc_flag' and must state Rule" in " | ".join(rep.errors)
+    rep = _recordings(folder, outlier_flag=["maybe", "True"])
+    assert "(qc_flag) is not true/false" in " | ".join(rep.errors)
+    rep = _recordings(folder, group=["KO", "HET"])
+    assert rep.ok and any("groups ['HET'] are not in design.groups" in w for w in rep.warnings)
