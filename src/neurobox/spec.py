@@ -6,7 +6,7 @@ neurofaune's imaging dependencies are not installed (neurovrai, a reader's lapto
 from __future__ import annotations
 
 SPEC = "neurofaune.results"
-SPEC_VERSION = "0.4.0"
+SPEC_VERSION = "0.4.1"
 #: The (major, minor) versions this package reads: every 0.x up to its own. A 0.1 folder
 #: is checked by 0.1's rules; the rules added in 0.2 apply to folders that declare 0.2 or
 #: later, and so on: each rule applies to folders declaring the version that added it or later.
@@ -27,13 +27,16 @@ MODALITIES = ("anat", "dwi", "func", "msme", "mrs", "asl", "eeg", "multimodal")
 REFERENCE_LABELS = ("registration", "finding", "doi")
 ROLES = ("confirmatory", "exploratory", "descriptive", "diagnostic")
 P_KINDS = ("fwe", "fdr", "perm", "uncorrected", "none")
-TABLE_ROLES = ("tests", "clusters", "elements", "descriptives", "other")
+#: 0.4.1 adds ``recordings``: one row per recording (scan, EEG session), with its quality checks.
+TABLE_ROLES = ("tests", "clusters", "elements", "descriptives", "recordings", "other")
 CONTRACT_ROLES = ("tests", "clusters", "elements")
 MAP_KINDS = ("stat", "p_corrected", "p_uncorrected", "effect", "mask", "background", "input",
              "other")
 RUN_STATUSES = ("completed", "partial", "failed", "running")
 DECISION_OUTCOMES = ("holds", "does_not_hold", "not_assessed")
 TEST_KINDS = ("two_group", "one_sample", "regression", "interaction", "custom", "equivalence")
+#: 0.4.1: what a declared contrast (``analysis.json`` ``contrasts``) is.
+CONTRAST_KINDS = ("omnibus", "contrast", "equivalence", "regression", "other")
 #: 0.4: the procedure a correction used, by name (``p_kind`` says only what it controls).
 CORRECTION_METHODS = ("BH", "BY", "holm", "hochberg", "bonferroni", "tfce", "cluster", "maxT", "nbs",
                       "none", "other")
@@ -82,6 +85,8 @@ STANDARD_TERMS: dict[str, tuple[str, ...]] = {
     "posterior_median": (), "hdi_low": ("CILevel",), "hdi_high": ("CILevel",), "p_direction": (),
     "p_rope": ("Rope",), "bf10": ("Scale",),
     "sesoi": ("Basis",), "reading": ("Levels",),
+    # 0.4.1: a recordings table (§5.7)
+    "subject": (), "group": (), "session": (), "qc_flag": ("Rule",),
 }
 
 #: Standard terms added after 0.1, with the (major, minor) version that added them. A folder
@@ -90,7 +95,7 @@ TERMS_SINCE: dict[str, tuple[int, int]] = {
     **dict.fromkeys(("se", "mde", "mde_percent", "mde_note"), (0, 3)),
     **dict.fromkeys(("correction_family", "p_uncorrected", "effect_measure", "margin", "equivalent",
                      "posterior_median", "hdi_low", "hdi_high", "p_direction", "p_rope", "bf10",
-                     "sesoi", "reading"), (0, 4)),
+                     "sesoi", "reading", "subject", "group", "session", "qc_flag"), (0, 4)),
 }
 #: Every reason an ``mde`` is not given starts with this (``mde_note``).
 NOT_COMPUTED = "not computed: "
@@ -102,10 +107,13 @@ PER_SUBGROUP = ("subgroup_effect", "subgroup_n")
 QUALIFIERS = ("Standard", "EffectMeasure", "EffectScope", "CILevel", "StatName", "StatScope",
               "PKind", "PScope", "Alpha", "Power", "Space", "Subgroup",
               # 0.4
-              "FacetName", "PercentOf", "Rope", "Scale", "Basis")
-#: Qualifiers added after 0.3, with the version that added them.
+              "FacetName", "PercentOf", "Rope", "Scale", "Basis",
+              # 0.4.1
+              "Rule", "QCMetric")
+#: Qualifiers added after 0.3, with the version that added them. The checker reads versions
+#: by (major, minor), so 0.4.1's additions, all optional, are checked in any 0.4 folder.
 QUALIFIERS_SINCE: dict[str, tuple[int, int]] = dict.fromkeys(
-    ("FacetName", "PercentOf", "Rope", "Scale", "Basis"), (0, 4))
+    ("FacetName", "PercentOf", "Rope", "Scale", "Basis", "Rule", "QCMetric"), (0, 4))
 
 
 # ── 0.2: identity and vocabulary ──────────────────────────────────────────────────

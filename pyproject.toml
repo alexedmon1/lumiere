@@ -1,6 +1,6 @@
 [project]
 name = "neurobox-dev"
-version = "0.4.0"
+version = "0.4.1"
 description = "One results schema, its checker and (soon) the study gallery shell, shared by neurofaune, neurovrai, source-analytics and source-localization"
 readme = "README.md"
 requires-python = ">=3.10"

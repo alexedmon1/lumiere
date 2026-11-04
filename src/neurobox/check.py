@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 
 from ._schema import load_schema, validate
-from .spec import (ANALYSIS_JSON, CONTRACT_ROLES, MODALITIES, NOT_COMPUTED, PER_FAMILY, PER_ROW,
+from .spec import (ANALYSIS_JSON, CONTRACT_ROLES, MODALITIES, ROLES, NOT_COMPUTED, PER_FAMILY, PER_ROW,
                    PER_SUBGROUP, PROVENANCE_JSON, QUALIFIERS_SINCE, READS, SPEC, SPEC_VERSION,
                    STANDARD_TERMS, TABLE_SUFFIXES, TERMS_SINCE, canonical_measure, domain_vocabulary,
                    entry_modalities, id_problem, measure_vocabulary, run_id_problem, task_problem,
@@ -161,7 +161,7 @@ def _v(version: tuple[int, int]) -> str:
 
 def features_0_4(analysis: dict) -> list[str]:
     """The 0.4 features an analysis.json uses (for refusing them in older folders)."""
-    used = [k for k in ("domain", "task", "atlas") if k in analysis]
+    used = [k for k in ("domain", "task", "atlas", "contrasts", "variant") if k in analysis]
     if analysis.get("modality") == "eeg" or "eeg" in (analysis.get("modalities") or []):
         used.append("modality 'eeg'")
     if analysis.get("analysis_type") in ("sensor", "vertex", "directed"):
@@ -250,10 +250,73 @@ def _rules_0_4(analysis: dict, rep: Report) -> None:
     for f in figures:
         if f.get("shows") and f["shows"] not in listed:
             rep.errors.append(f"figure {f.get('path')!r}: shows {f['shows']!r}, which is not one of its tables")
+    _rules_contrasts(analysis, rep)
+    _rules_variant(analysis, rep)
     has_elements = any(isinstance(t, dict) and t.get("role") == "elements" for t in analysis.get("tables") or [])
     if has_elements and any(f.get("kind") == "brain" for f in figures) and "atlas" not in analysis:
         rep.errors.append(f"{ANALYSIS_JSON}: a brain figure of an elements table needs the atlas its "
                           "elements are parcels of ('atlas': {name, version})")
+
+
+def _contrast_ids(analysis: dict) -> set[str]:
+    return {c["id"] for c in analysis.get("contrasts") or [] if isinstance(c, dict) and c.get("id")}
+
+
+def _rules_contrasts(analysis: dict, rep: Report) -> None:
+    """0.4.1 (RESULTS_SPEC.md §3.6): the declared contrasts, each once; a gate names another of
+    them; a contrast's groups are the design's."""
+    items = [c for c in analysis.get("contrasts") or [] if isinstance(c, dict) and c.get("id")]
+    ids = [c["id"] for c in items]
+    dup = sorted({i for i in ids if ids.count(i) > 1})
+    if dup:
+        rep.errors.append(f"{ANALYSIS_JSON}: contrasts {dup} are declared more than once")
+    groups = set((analysis.get("design") or {}).get("groups") or {})
+    for c in items:
+        for g in c.get("gate_on") or []:
+            if g == c["id"]:
+                rep.errors.append(f"{ANALYSIS_JSON}: contrast {c['id']!r} is gated on itself")
+            elif g not in ids:
+                rep.errors.append(f"{ANALYSIS_JSON}: contrast {c['id']!r} is gated on {g!r}, which is not "
+                                  "one of the contrasts")
+        unknown = [c[k] for k in ("group_a", "group_b") if c.get(k) and groups and c[k] not in groups]
+        if unknown:
+            rep.warnings.append(f"{ANALYSIS_JSON}: contrast {c['id']!r} names groups {unknown} that "
+                                "design.groups does not")
+        if c.get("role") is not None and c["role"] not in ROLES:
+            rep.errors.append(f"{ANALYSIS_JSON}: contrast {c['id']!r} role {c['role']!r} is not one of "
+                              f"{', '.join(ROLES)}")
+
+
+def _rules_variant(analysis: dict, rep: Report) -> None:
+    """0.4.1 (RESULTS_SPEC.md §3.7): a variant's analysis id is ``of`` with the variant's value
+    among the parts after it, so ids and variants cannot drift apart."""
+    v = analysis.get("variant")
+    aid = analysis.get("id")
+    if not isinstance(v, dict) or not isinstance(aid, str) or not all(isinstance(v.get(k), str) for k in
+                                                                        ("of", "value")):
+        return
+    rest = aid[len(v["of"]) + 1:].split("/") if aid.startswith(v["of"] + "/") else None
+    if rest is None:
+        rep.errors.append(f"{ANALYSIS_JSON}: variant.of {v['of']!r} is not the start of the id {aid!r}")
+    elif v["value"] not in rest:
+        rep.errors.append(f"{ANALYSIS_JSON}: variant.value {v['value']!r} is not a part of the id {aid!r} "
+                          f"after {v['of']!r}")
+
+
+def _recordings(std: dict, rows: list, analysis: dict, where: str, rep: Report) -> None:
+    """0.4.1 (RESULTS_SPEC.md §5.7): a recordings table names each row's subject; its groups are
+    the design's."""
+    if "subject" not in std:
+        rep.errors.append(f"{where} (recordings): which subject -- needs a column marked 'subject'")
+    else:
+        blank = sum(1 for r in rows if r.get(std["subject"], "") == "")
+        if blank:
+            rep.errors.append(f"{where} (recordings): {blank} row(s) name no subject")
+    groups = set((analysis.get("design") or {}).get("groups") or {})
+    if "group" in std and groups:
+        unknown = sorted({r.get(std["group"], "") for r in rows} - groups - {""})
+        if unknown:
+            rep.warnings.append(f"{where} (recordings): groups {unknown[:3]} are not in design.groups")
 
 
 def read_table(path: Path) -> tuple[list[str], list[dict[str, str]]]:
@@ -429,7 +492,7 @@ def _check_table(folder: Path, entry: dict, analysis: dict, rep: Report,
             bad = [r[col] for r in rows if r[col] != "" and not _in_unit(r[col])]
             if bad:
                 rep.errors.append(f"{where}: {col!r} ({term}) has values outside [0, 1]: {bad[:3]}")
-    for term in ("significant", "effect_selected", "crosses_midline", "equivalent"):
+    for term in ("significant", "effect_selected", "crosses_midline", "equivalent", "qc_flag"):
         col = std.get(term)
         if col and col in cols:
             bad = [r[col] for r in rows if r[col] not in _TRUE | _FALSE | {""}]
@@ -440,6 +503,15 @@ def _check_table(folder: Path, entry: dict, analysis: dict, rep: Report,
         _table_rules_0_4(std, dictionary, rows, analysis, where, dict_path.name, rep)
     if entry.get("role") in CONTRACT_ROLES:
         _contract(entry["role"], std, rows, analysis, where, rep)
+        declared = _contrast_ids(analysis)
+        ccol = std.get("contrast")
+        if declared and ccol:                        # 0.4.1, §3.6
+            unlisted = sorted({r.get(ccol, "") for r in rows} - declared - {""})
+            if unlisted:
+                rep.errors.append(f"{where}: contrasts {unlisted[:3]} are not among analysis.json's "
+                                  "contrasts")
+    elif entry.get("role") == "recordings":
+        _recordings(std, rows, analysis, where, rep)
     return entry.get("role", ""), std, rows
 
 
@@ -724,7 +796,9 @@ def check_analysis(folder: Path) -> Report:
     if nested:
         rep.errors.append(f"analysis folders must not nest: {[str(p) for p in nested[:3]]}")
     run = analysis.get("run") if isinstance(analysis.get("run"), dict) else {}
-    rep.meta = {"v02": v02, "modality": analysis.get("modality"), "analysis_type": analysis.get("analysis_type"),
+    variant = analysis.get("variant") if isinstance(analysis.get("variant"), dict) else {}
+    rep.meta = {"variant": tuple(variant.get(k) for k in ("of", "axis", "value")) if variant else None,
+                "v02": v02, "modality": analysis.get("modality"), "analysis_type": analysis.get("analysis_type"),
                 "run": run.get("id"), "supersedes": list(run.get("supersedes") or []), "tests": tested}
     return rep
 
@@ -744,6 +818,16 @@ def check_runs(reports: list[Report]) -> None:
     for r in reports:
         if r.id:
             by_id.setdefault(r.id, []).append(r)
+    variants: dict[tuple, set[str]] = {}             # 0.4.1 (§3.7): one id per variant
+    for r in reports:
+        if r.id and r.meta.get("variant"):
+            variants.setdefault(r.meta["variant"], set()).add(r.id)
+    for (of, axis, value), ids in variants.items():
+        if len(ids) > 1:
+            for r in reports:
+                if r.id in ids:
+                    r.errors.append(f"variant {value!r} of {of!r} ({axis}) is claimed by {len(ids)} analyses: "
+                                    f"{sorted(ids)}")
     for aid, reps in by_id.items():
         if len(reps) < 2:
             continue

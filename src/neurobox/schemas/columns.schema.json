@@ -20,7 +20,8 @@
                             "subgroup_effect", "subgroup_n", "se", "mde", "mde_percent", "mde_note",
                             "correction_family", "p_uncorrected", "effect_measure", "margin",
                             "equivalent", "posterior_median", "hdi_low", "hdi_high", "p_direction",
-                            "p_rope", "bf10", "sesoi", "reading"]},
+                            "p_rope", "bf10", "sesoi", "reading", "subject", "group", "session",
+                            "qc_flag"]},
       "EffectMeasure": {"type": "string", "minLength": 1},
       "EffectScope": {"type": "string"},
       "CILevel": {"type": "number", "minimum": 0},
@@ -36,7 +37,9 @@
       "PercentOf": {"type": "string", "minLength": 1},
       "Rope": {"type": "string", "minLength": 1},
       "Scale": {"enum": ["log10", "linear"]},
-      "Basis": {"type": "string", "minLength": 1}
+      "Basis": {"type": "string", "minLength": 1},
+      "Rule": {"type": "string", "minLength": 1},
+      "QCMetric": {"type": "boolean"}
     }
   }
 }

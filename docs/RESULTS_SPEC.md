@@ -16,7 +16,7 @@ its page shell is moving into neurobox-dev, so that each tool's `gallery build`
 (neurofaune for MRI, source-analytics for EEG) builds its studies' galleries from these
 files. The identifier in every file stays `"neurofaune.results"` until the final name.
 
-**Status: 0.4.0, draft.** It becomes 1.0.0 when one MRI study (cuprizone) and one EEG
+**Status: 0.4.1, draft.** It becomes 1.0.0 when one MRI study (cuprizone) and one EEG
 study (FORGE) both build their galleries from it end to end. Until then a minor version may change a field;
 from 1.0.0 on, versions follow semver and a reader written for 1.x reads every 1.y.
 0.2 adds identity and vocabulary (§3.1): what one analysis is, how it is named, and
@@ -100,10 +100,12 @@ Fields marked * are required.
 | `domain` (0.4) | what the analysis is about, from the domain vocabulary: `spectral`, `aperiodic`, `connectivity`, `microstructure`, … (§3.1) |
 | `task` (0.4) | the paradigm the data come from, by its BIDS task label: `rest`, `chirp`, `assr40` |
 | `atlas` (0.4) | `{name*, version}`: the parcellation that `element` values name (§3.5) |
+| `variant` (0.4.1) | `{of*, axis*, value*, label}`: this analysis is one variant of `of`, differing in `axis` (§3.7) |
 | `modalities` | a `multimodal` analysis's modalities, e.g. `["dwi", "func"]`; only then |
 | `measures` | the measured quantities, in display order, e.g. `["FA", "MD", "RD"]`; from 0.2 by their names in the measure vocabulary (§3.1) |
 | `role`* | `confirmatory`, `exploratory`, `descriptive` or `diagnostic` |
 | `design`* | `{n*, groups: {name: n}, test_kinds: [...], records: [paths to design.json], sessions, timepoints}`; `sessions` (0.4) the number of scans or recordings, `timepoints` (0.4) their labels in order (§3.5) |
+| `contrasts` (0.4.1) | `[{id*, label, kind, group_a, group_b, tier, role, gate_on}]`: the contrasts the tables test, declared (§3.6) |
 | `inference`* | `{method*, correction*, n_permutations, notes}`; `correction` = `{p_kind*, family*, statement*, alpha, method}` (below); from 0.4 `families` in place of `correction` (§5.2) |
 | `effect`* | `{measure*, definition*, ci_level, scope, sesoi}`, or `{measure: null, reason*}` where no effect size applies; `measure` is `per_row` (0.4) where it varies by row (§5.4); `sesoi` (0.4) is the smallest effect of interest (§5.6) |
 | `tables`* | `[{path*, role*, rows*, description*, headline, n_rows, threshold}]` (below); `threshold` (0.4) is what selected the rows (§3.4) |
@@ -133,6 +135,7 @@ not how: Holm and BH are both "a correction", and only one of them is FDR.
 | `clusters` | one spatial cluster of one test | checked |
 | `elements` | one ROI / edge / component of one test | checked |
 | `descriptives` | a group summary (means, SDs, n) | not checked |
+| `recordings` (0.4.1) | one recording (a scan, an EEG session) with its quality checks (§5.7) | its own rules (§5.7) |
 | `other` | anything else, described in `rows` | not checked |
 
 `rows` says what one row is in words; `headline: true` marks the table a reader
@@ -275,6 +278,51 @@ none, and a reader of `outcome` alone cannot know. So a decision may state:
 - **`design.sessions`** is the number of scans or recordings when it is not `n` (longitudinal
   designs), and **`design.timepoints`** their labels in order (`["p60", "p90", "p120"]`).
 
+### 3.6 Declared contrasts (0.4.1)
+
+A table's `contrast` column names each test's contrast by an identifier. **`contrasts`**
+says what each one is, once for the analysis, so a reader need not take it from a column or
+from the study's own config:
+
+```json
+"contrasts": [
+  {"id": "disease_effect", "label": "Disease effect (KO vs WT)", "kind": "contrast",
+   "group_a": "KO_VEH", "group_b": "WT_VEH", "tier": "phenotype"},
+  {"id": "hd_icv_rescue", "label": "HD-ICV rescue (vs KO veh)", "kind": "contrast",
+   "group_a": "KO_HD_ICV", "group_b": "KO_VEH", "tier": "rescue", "gate_on": ["disease_effect"]},
+  {"id": "hd_icv_normalization", "label": "HD-ICV normalization to WT", "kind": "equivalence",
+   "group_a": "KO_HD_ICV", "group_b": "WT_VEH", "tier": "normalization", "role": "confirmatory"}
+]
+```
+
+- **`id`*** is the value in the tables' `contrast` column. Where `contrasts` is given, every
+  `contrast` value in a `tests`, `clusters` or `elements` table is one of its ids.
+- **`kind`** is `omnibus`, `contrast`, `equivalence`, `regression` or `other`; **`group_a`**
+  and **`group_b`** are the positively and negatively weighted groups of a two-group contrast,
+  as `design.groups` names them.
+- **`tier`** groups contrasts as the study does (phenotype, rescue, normalization); a reader
+  shows tiers in the order they first appear.
+- **`role`** is the contrast's own role where it differs from the analysis's: an exploratory
+  analysis may test some contrasts it declared in advance, which are `confirmatory`.
+- **`gate_on`** names contrasts (of this list) that must hold before this one is read.
+
+### 3.7 Variants of one analysis (0.4.1)
+
+The same analysis is often run several ways that a reader compares side by side: on each
+source reconstruction of an EEG study, through two pipelines, in two templates. Each way is
+its own analysis, with its own id and runs; **`variant`** ties them together:
+
+```json
+"id": "eeg/roi/psd/cartesian_mc",
+"variant": {"of": "eeg/roi/psd", "axis": "reconstruction", "value": "cartesian_mc", "label": "MC Cartesian"}
+```
+
+- Analyses with the same **`of`** and **`axis`** are variants of one analysis; **`value`**
+  tells them apart and **`label`** names it for display. A study's gallery settings give the
+  order of an axis's values.
+- The id is `of` followed by its parts, the variant's `value` among them, so the two cannot
+  drift apart; and one variant (`of`, `axis`, `value`) is one analysis id across the results.
+
 ## 4. `provenance.json`
 
 | field | content |
@@ -368,6 +416,10 @@ A reader shows a run whose status is not `completed` as such, never silently.
 | `bf10` (0.4) | [`Scale`*: `log10` or `linear`] the Bayes factor for an effect over none |
 | `sesoi` (0.4) | [`Basis`*] the row's smallest effect of interest, in `estimate`'s units (§5.6) |
 | `reading` (0.4) | [`Levels`*] what the row shows, one of its `Levels` (§5.6) |
+| `subject` (0.4.1) | the subject a recording is of (§5.7) |
+| `group` (0.4.1) | the subject's group, as `design.groups` names it (§5.7) |
+| `session` (0.4.1) | the session or timepoint of a recording (§5.7) |
+| `qc_flag` (0.4.1) | [`Rule`*: the rule in words] true where the recording is flagged by its quality checks (§5.7) |
 
 Columns with no standard term are welcome; their dictionary entry describes them.
 
@@ -467,6 +519,18 @@ across repeat scans, an equivalence margin. An analysis gives one value in
 as the scatter", "undetermined") go in a **`reading`** column, whose `Levels` define every
 value it uses.
 
+### 5.7 Recordings and their quality checks (0.4.1)
+
+A table of role **`recordings`** has one row per recording: a scan, an EEG session, a
+localization of one session. It names the subject in a column marked **`subject`** (required,
+on every row), and where it has them the subject's group (**`group`**, values from
+`design.groups`) and the session (**`session`**). A column marked **`qc_flag`** is true where
+the recording's quality checks flag it, and states the rule that flags it in words (`Rule`,
+e.g. "|z| > 2 against the study on any QCMetric column"); the producer applies the rule, and a
+reader shows its result. The columns the checks look at say so with **`QCMetric: true`**, so
+a reader can show them as the recording's metrics. Other columns, such as a recording's report
+or figures, are described like any others.
+
 ## 6. The reporting contract
 
 `neurofaune results check` enforces this on tables whose role is `tests`,
@@ -542,4 +606,6 @@ standard library, so it can run where no producer's dependencies are installed.
 was written for — while the major is 0, every minor up to its own (a 0.4 reader reads
 0.1 to 0.4) — and reports, never guesses, a field it does not know. Producers write
 the version they were built against. Changes are listed in neurobox-dev's
-`CHANGELOG.md`.
+`CHANGELOG.md`. A patch version (0.4.1) adds only optional fields; the checker reads a
+folder's version by its major and minor, so it checks 0.4.1's fields wherever a 0.4 folder
+uses them, and refuses them in older folders.
