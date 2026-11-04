@@ -186,6 +186,7 @@
     if (parts[0] === "search") renderSearch(parts.slice(1).join("/"));
     else if (parts[0] === "d") renderDomain(parseInt(parts[1], 10), parts[2] || "", parts[3] || "");
     else if (parts[0] === "a") renderAnalysis(parts[1]);
+    else if (parts[0] === "id") renderById(parts.slice(1).join("/"));  // stable across runs (DUET #165)
     else if (parts.length === 1 && (A[parts[0]] || M.runs[parts[0]])) renderAnalysis(parts[0]);  // old links
     else renderOverview();
     window.scrollTo(0, 0);
@@ -255,6 +256,16 @@
         html += "</ul>";
       });
     });
+    var older = KEYS.filter(function (k) { return A[k].code && A[k].code.state === "older"; });
+    if (older.length) {
+      html += '<div class="analysis-warn code-older"><b>' + plural(older.length, "analysis", "analyses") +
+        " made with older code</b> than the study pins; re-run to bring them up to date<ul>" +
+        older.map(function (k) {
+          var c = A[k].code;
+          return '<li><a href="#' + esc(analysisRoute(k)) + '">' + esc(A[k].title || A[k].id) + "</a> — " +
+            esc(c.tool + " " + c.ran + ", pinned " + c.pinned) + "</li>";
+        }).join("") + "</ul></div>";
+    }
     if (M.not_shown && M.not_shown.length) {
       html += '<div class="analysis-warn"><b>Not shown: ' + plural(M.not_shown.length, "folder") +
         " that do not conform</b><ul>";
@@ -396,6 +407,38 @@
     bindInner(document.getElementById("page"), inner);
   }
 
+  // An analysis by its analysis.json id, whichever run is current: the link a DUET finding uses.
+  function renderById(id) {
+    var key = KEYS.find(function (k) { return A[k].id === id; });
+    if (key) return renderAnalysis(key);
+    notFound("No analysis " + id + " in this gallery");
+  }
+
+  var CODE_NOTE = {
+    older: "Made with an older version of {tool} ({ran}) than the study pins ({pinned}): its numbers may differ from what the pinned code gives. Re-run it to bring it up to date.",
+    newer: "Made with {tool} {ran}, later than the study pins ({pinned}): unreleased work, or the study's pin is behind.",
+    uncommitted: "Made with {tool} {ran}, from code with uncommitted changes: what made it is not recorded anywhere.",
+  };
+  function codeHtml(a) {
+    var c = a.code;
+    if (!c || !CODE_NOTE[c.state]) return "";
+    var text = CODE_NOTE[c.state].replace(/\{(\w+)\}/g, function (_, k) { return c[k]; });
+    return '<div class="analysis-warn code-' + esc(c.state) + '"><b>' +
+      (c.state === "older" ? "Older code" : c.state === "newer" ? "Not the pinned code" : "Uncommitted code") +
+      "</b> — " + esc(text) + "</div>";
+  }
+
+  // The DUET findings whose numbers came from this analysis (DUET #165), each opening the record.
+  function findingsHtml(a) {
+    var fs = a.findings || [];
+    if (!fs.length) return "";
+    return '<div class="analysis-findings"><span class="about-label">' + plural(fs.length, "finding") +
+      " in the study's record</span><ul>" + fs.map(function (f) {
+        return '<li><a href="' + esc(f.href) + '" target="_blank" rel="noopener"><b>' + esc(f.id) + "</b></a> " +
+          esc(f.text) + (f.status && f.status !== "recorded" ? ' <span class="tag">' + esc(f.status) + "</span>" : "") + "</li>";
+      }).join("") + "</ul></div>";
+  }
+
   /* ── One analysis: about, cautions, what produced it, then Summary / Figures / Tables ── */
   function analysisInner(a, prefix, subHeader) {
     var html = "";
@@ -419,7 +462,7 @@
       html += '<div class="analysis-warn"><b>Read with</b><ul>' +
         a.caveats.map(function (c) { return "<li>" + esc(c) + "</li>"; }).join("") + "</ul></div>";
     }
-    html += provenanceHtml(a) + measuresHtml(a);
+    html += codeHtml(a) + findingsHtml(a) + provenanceHtml(a) + measuresHtml(a);
 
     var tabs = [];
     var summary = summaryHtml(a);

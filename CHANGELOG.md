@@ -3,6 +3,19 @@
 The specification's identifier is `neurofaune.results`; it moved from neurofaune to
 neurobox-dev (a working name) on 2026-11-03.
 
+## Gallery shell — 2026-11-04 (no change to the specification)
+
+- **`#/id/<id>`** opens an analysis by its `analysis.json` id, whichever run is current: the
+  link a DUET finding uses (DUET #165).
+- **Findings that cite it:** the build reads `<study>/duet/status.json`, and each analysis
+  lists the findings whose `analysis` names it, each linking to the record page.
+- **Older code:** the build compares each analysis's producer (`generated_by`, first entry)
+  with the version `<study>/study.toml` pins; an analysis made with an older version is
+  flagged on its page and listed on the overview. The manifest's `code` counts each state
+  (current, older, newer, uncommitted, unknown) for readers such as Esprit.
+- **Dark theme:** the description and provenance boxes and links in text used colours the
+  themes did not define, and showed light on dark; they follow the theme now.
+
 ## 0.4.1 — 2026-11-04
 
 What source-lightbox's study galleries need that the specification did not say (Esprit's

@@ -177,3 +177,58 @@ def test_a_gallery_off_the_standard_place_is_warned_about(study, tmp_path):
     with warnings.catch_warnings():
         warnings.simplefilter("error")
         gallery.build(study, SETTINGS)                       # <study>/gallery: no warning
+
+
+def _made_by(folder, *generated_by):
+    p = json.loads((folder / "provenance.json").read_text())
+    p["generated_by"] = list(generated_by)
+    (folder / "provenance.json").write_text(json.dumps(p))
+
+
+def test_findings_that_cite_an_analysis_and_its_code_against_the_pin(tmp_path):
+    """DUET #165's findings, from duet/status.json, and the producer's version against study.toml."""
+    top = tmp_path / "study"
+    res = top / "results"
+    old = _analysis_folder(res, "eeg/roi/psd", "r1", modality="eeg", domain="spectral")
+    same = _analysis_folder(res, "eeg/roi/aperiodic", "r1", modality="eeg", domain="aperiodic")
+    later = _analysis_folder(res, "eeg/connectome/ppc", "r1", modality="eeg", atype="connectome")
+    _made_by(old, {"Name": "source-analytics", "Version": "v0.7.0-3-g8135954"}, {"Name": "R", "Version": "4.6.1"})
+    _made_by(same, {"Name": "source_analytics", "Version": "0.8.2"})
+    _made_by(later, {"Name": "source-analytics", "Version": "v0.8.2-12-g0c7052e-dirty"})
+    (top / "study.toml").write_text('[study]\nname = "s"\n[packages]\n'
+                                    'source-analytics = "git+https://github.com/me/source-analytics.git@v0.8.2"\n')
+    (top / "duet").mkdir()
+    (top / "duet" / "status.json").write_text(json.dumps({"records": [
+        {"id": "F001", "kind": "finding", "status": "recorded", "text": "Gamma is up", "link": "record.html#/finding/F001",
+         "analysis": ["eeg/roi/psd"]},
+        {"id": "CL001", "kind": "claim", "analysis": ["eeg/roi/psd"]},
+    ]}))
+    m = _manifest(gallery.build(top, {"paths": {"results": "results"}}))
+    by_id = {a["id"]: a for a in m["analyses"].values()}
+    assert by_id["eeg/roi/psd"]["findings"] == [{"id": "F001", "text": "Gamma is up", "status": "recorded",
+                                                 "href": "../duet/record.html#/finding/F001"}]
+    assert by_id["eeg/roi/aperiodic"]["findings"] == []
+    assert by_id["eeg/roi/psd"]["code"]["state"] == "older"
+    assert by_id["eeg/roi/aperiodic"]["code"]["state"] == "current"
+    assert by_id["eeg/connectome/ppc"]["code"]["state"] == "uncommitted"
+    assert m["code"] == {"current": 1, "older": 1, "uncommitted": 1} and m["findings"] == 1
+    page = (top / "gallery" / "assets" / "gallery.js").read_text()
+    assert 'parts[0] === "id"' in page and "made with older code" in page
+
+
+def test_code_state_reads_releases_describes_and_commits():
+    from neurobox.gallery.links import code_state
+
+    def state(version, ref, commit=None):
+        gb = {"Name": "tool", "Version": version, **({"CommitID": commit} if commit else {})}
+        return (code_state([gb], {"tool": ref}) or {}).get("state")
+
+    assert state("0.7.0", "v0.7.0") == "current"
+    assert state("v0.7.0-2-gabcdef1", "v0.7.0") == "newer"
+    assert state("0.6.9", "v0.7") == "older"
+    assert state("v0.8.2-8-g8135954", "8135954aa") == "current"
+    assert state("0.8.2", "8135954aa") == "unknown"
+    assert state("0.8.2", "8135954aa", commit="8135954aa00") == "current"
+    assert state("weird", "v1") == "unknown"
+    assert code_state([{"Name": "other", "Version": "1"}], {"tool": "v1"}) is None
+    assert code_state([], {"tool": "v1"}) is None

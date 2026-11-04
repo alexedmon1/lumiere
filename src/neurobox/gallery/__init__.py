@@ -53,6 +53,7 @@ from pathlib import Path
 from typing import Any
 
 from ..check import check, read_table
+from .links import code_state, findings_by_analysis, study_pins
 from ..spec import (
     ANALYSIS_JSON,
     PROVENANCE_JSON,
@@ -287,6 +288,18 @@ def build(study: Path, settings: dict | None = None, out: Path | None = None) ->
         current.append(head)
     current.sort(key=lambda a: str(a["id"]))
 
+    # beyond each folder: the DUET findings that cite it (DUET #165), and its code against the pin
+    cited = findings_by_analysis(study, dest)
+    pins = study_pins(study)
+    for a in analyses:
+        a["findings"] = cited.get(str(a["id"]), [])
+        a["code"] = code_state(a["provenance"].get("generated_by") or [], pins)
+    for a in current:
+        a["findings"] = cited.get(str(a["id"]), [])
+        a["code"] = code_state(a["provenance"].get("generated_by") or [], pins)
+    states = [a["code"]["state"] for a in current if a.get("code")]
+    code = {s: states.count(s) for s in ("current", "older", "newer", "uncommitted", "unknown") if s in states}
+
     sections = settings.get("sections") or _default_sections(current)
     placed: dict[str, list[str]] = {s.get("key") or _slug(s.get("label", "section")): [] for s in sections}
     other = []
@@ -329,6 +342,7 @@ def build(study: Path, settings: dict | None = None, out: Path | None = None) ->
         "domains": domain_list, "measures": measures, "variant_order": settings.get("variants") or {},
         "runs": {a["key"]: a for a in analyses},
         "not_shown": failed, "built": built, "spec_version": SPEC_VERSION,
+        "code": code, "findings": sum(len(a["findings"]) for a in current),
         "generator": settings.get("generator"),
     }
     shutil.copytree(HERE / "static", dest / "assets")
