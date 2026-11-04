@@ -6,6 +6,12 @@ it draws, listed in ``analysis.json``), then calls :func:`build` with the study'
 gallery settings (``gallery.yaml`` at the study's top, parsed by the tool). The
 shell reads only those files; nothing tool-specific crosses over.
 
+**Where it goes (the standard, 2026-11-04):** a study's gallery is ``<study>/gallery/``, at the
+top of the study's folder (the one with ``study.toml``), beside its settings in
+``<study>/gallery.yaml``: one place for every tool and modality, so readers such as Esprit find
+it without being told. ``paths.gallery`` and ``out`` can put it elsewhere (a scratch build to
+compare against an older gallery, say); the shell warns when the result is not the standard place.
+
 The gallery is one folder with an ``index.html`` that works from the file system
 (no server, no fetch): the manifest is inlined, and each analysis's listed tables
 and figures are copied beside it. Rebuilt, never edited.
@@ -16,7 +22,7 @@ and figures are copied beside it. Rebuilt, never edited.
     description: ...                         # optional
     paths:
       results: [analyses/results, preprocessing/derivatives/rest_shell_mc/qc]
-      gallery: ./gallery                     # where the gallery is written
+      gallery: ./gallery                     # where the gallery is written (the standard; see above)
     links: [{label: Preprocessing QC, path: ../preprocessing/qc/index.html}]
     groups: {WT_VEH: WT vehicle}             # optional labels for design groups
     group_order: [WT_VEH, KO_VEH]
@@ -41,6 +47,7 @@ import json
 import os
 import shutil
 import string
+import warnings
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -57,6 +64,8 @@ from ..spec import (
 HERE = Path(__file__).parent
 #: Marks a folder this shell built, which a rebuild may replace.
 MARKER = ".neurobox-gallery"
+#: The standard place of a study's gallery, relative to the study's folder.
+STANDARD = "gallery"
 #: Rows of a table embedded in the page; the full table is copied and linked.
 MAX_ROWS = 500
 MATCH_FIELDS = ("analysis_type", "modality", "domain", "role", "task", "measures", "id")
@@ -226,6 +235,10 @@ def build(study: Path, settings: dict | None = None, out: Path | None = None) ->
     paths = settings.get("paths") or {}
     roots = [(study / p).resolve() for p in _paths(paths.get("results"))] or [study]
     dest = Path(out).resolve() if out else (study / (paths.get("gallery") or "gallery")).resolve()
+    if dest != (study / STANDARD).resolve():
+        warnings.warn(f"building the gallery in {dest}, not the standard place {study / STANDARD} "
+                      "(<study>/gallery, beside study.toml): readers will not find it there",
+                      stacklevel=2)
     if dest == study or dest in roots:
         raise GalleryError(f"the gallery folder {dest} would replace the study's own files")
     if dest.exists():

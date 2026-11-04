@@ -1040,8 +1040,17 @@
       lightbox = window.GLightbox({ selector: ".glightbox", touchNavigation: true, loop: true, zoomable: true, draggable: true });
     }
   }
+  // The choice is remembered where the page may store it. A page served sandboxed (Esprit's
+  // dashboard) may not: there the toggle still works, for the visit.
+  function stored(value) {
+    try {
+      if (value === undefined) return window.localStorage.getItem("neurobox-theme");
+      window.localStorage.setItem("neurobox-theme", value);
+    } catch (e) { /* no storage here */ }
+    return null;
+  }
   function initThemeToggle() {
-    var saved = localStorage.getItem("neurobox-theme");
+    var saved = stored();
     if (saved) document.documentElement.setAttribute("data-theme", saved);
     else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
       document.documentElement.setAttribute("data-theme", "light");
@@ -1049,7 +1058,7 @@
     document.getElementById("theme-toggle").addEventListener("click", function () {
       var next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
       document.documentElement.setAttribute("data-theme", next);
-      localStorage.setItem("neurobox-theme", next);
+      stored(next);
     });
   }
   function initKeyboard() {

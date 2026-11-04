@@ -168,3 +168,12 @@ def test_the_page_gets_variants_contrasts_and_the_vocabularies(tmp_path):
         assert (assets / name).is_file(), name
     page = index.read_text()
     assert "assets/vendor/glightbox.min.js" in page and 'id="sidebar-nav"' in page
+
+
+def test_a_gallery_off_the_standard_place_is_warned_about(study, tmp_path):
+    with pytest.warns(UserWarning, match="not the standard place"):
+        gallery.build(study, SETTINGS, out=tmp_path / "scratch-gallery")
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        gallery.build(study, SETTINGS)                       # <study>/gallery: no warning
