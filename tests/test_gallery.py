@@ -23,7 +23,7 @@ COLUMNS = {
 
 
 def _analysis_folder(root, aid, run, modality="dwi", atype="roi", title="Demo", domain=None, report=True,
-                     supersedes=None):
+                     supersedes=None, **extra):
     f = root.joinpath(*aid.split("/"), run)
     f.mkdir(parents=True)
     (f / "reports").mkdir()
@@ -42,6 +42,7 @@ def _analysis_folder(root, aid, run, modality="dwi", atype="roi", title="Demo", 
          "figures": [{"path": "fig.png", "caption": "a figure", "kind": "summary"}]}
     if domain:
         a["domain"] = domain
+    a.update(extra)
     write_analysis(f, a, provenance([{"Name": "demo", "Version": "1"}], status="completed", start="2026"))
     return f
 
@@ -141,3 +142,29 @@ def test_a_folder_the_shell_did_not_build_is_never_replaced(study):
     gallery.build(study, SETTINGS)                        # empty: fine
     gallery.build(study, SETTINGS)                        # its own: rebuilt
     assert (other / gallery.MARKER).is_file()
+
+
+def test_the_page_gets_variants_contrasts_and_the_vocabularies(tmp_path):
+    """What the ported lightbox front end reads instead of guessing (spec 0.4.1)."""
+    res = tmp_path / "study" / "results"
+    contrasts = [{"id": "A>B", "label": "A over B", "kind": "contrast", "tier": "phenotype"}]
+    for value, label in (("roi_based", "ROI-based"), ("cartesian_mc", "MC Cartesian")):
+        _analysis_folder(res, f"eeg/roi/psd/{value}", "r1", modality="eeg", domain="spectral", contrasts=contrasts,
+                         measures=["FA", "band_power"],
+                         variant={"of": "eeg/roi/psd", "axis": "reconstruction", "value": value, "label": label})
+    _analysis_folder(res, "eeg/roi/aperiodic", "r1", modality="eeg", domain="aperiodic", measures=["FA", "aperiodic_exponent"])
+    settings = {"paths": {"results": "results"}, "variants": {"reconstruction": ["roi_based", "cartesian_mc"]}}
+    index = gallery.build(tmp_path / "study", settings)
+    m = _manifest(index)
+    psd = [a for a in m["analyses"].values() if a["id"].startswith("eeg/roi/psd/")]
+    assert {a["variant"]["value"] for a in psd} == {"roi_based", "cartesian_mc"}
+    assert psd[0]["contrasts"] == contrasts
+    assert [d["name"] for d in m["domains"]] == ["spectral", "aperiodic"]          # the vocabulary's order
+    assert set(m["measures"]) == {"FA", "band_power", "aperiodic_exponent"} and m["measures"]["band_power"]
+    assert m["variant_order"] == {"reconstruction": ["roi_based", "cartesian_mc"]}
+    assets = index.parent / "assets"
+    for name in ("gallery.js", "gallery.css", "vendor/glightbox.min.js", "vendor/glightbox.min.css",
+                 "vendor/tablesort.min.js", "vendor/NOTICE.md"):
+        assert (assets / name).is_file(), name
+    page = index.read_text()
+    assert "assets/vendor/glightbox.min.js" in page and 'id="sidebar-nav"' in page

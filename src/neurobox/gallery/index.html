@@ -5,21 +5,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>$title</title>
 <link rel="stylesheet" href="assets/gallery.css">
+<link rel="stylesheet" href="assets/vendor/glightbox.min.css">
 <script>window.GALLERY = $manifest;</script>
 </head>
 <body>
 <nav id="sidebar">
   <div class="sidebar-header">
-    <h1 id="gallery-title">$title</h1>
-    <input type="search" id="search" placeholder="Search analyses" autocomplete="off">
+    <h1 id="gallery-title"><a href="#/">$title</a></h1>
+    <input type="search" id="search-input" placeholder="Search... ( / )" autocomplete="off">
   </div>
-  <div id="nav"></div>
+  <div id="sidebar-nav"></div>
   <div class="sidebar-footer">
-    <button id="theme" title="Light or dark">&#9788; / &#9790;</button>
+    <button id="theme-toggle" title="Light or dark">
+      <span class="theme-icon-light">&#9788;</span>
+      <span class="theme-icon-dark">&#9790;</span>
+    </button>
     <span class="built">built $built</span>
   </div>
 </nav>
-<main id="content"></main>
+<main id="content">
+  <div id="breadcrumb"></div>
+  <div id="source-selector"></div>
+  <div id="page"></div>
+</main>
+<script src="assets/vendor/glightbox.min.js"></script>
+<script src="assets/vendor/tablesort.min.js"></script>
 <script src="assets/gallery.js"></script>
 </body>
 </html>

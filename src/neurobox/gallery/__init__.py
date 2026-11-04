@@ -20,6 +20,7 @@ and figures are copied beside it. Rebuilt, never edited.
     links: [{label: Preprocessing QC, path: ../preprocessing/qc/index.html}]
     groups: {WT_VEH: WT vehicle}             # optional labels for design groups
     group_order: [WT_VEH, KO_VEH]
+    variants: {reconstruction: [roi_based, cartesian_mc]}   # optional order of each axis's values
     sections:                                # optional; default: by modality, then domain
       - key: dwi_tbss
         label: TBSS (randomise)
@@ -45,7 +46,13 @@ from pathlib import Path
 from typing import Any
 
 from ..check import check, read_table
-from ..spec import ANALYSIS_JSON, PROVENANCE_JSON, SPEC_VERSION
+from ..spec import (
+    ANALYSIS_JSON,
+    PROVENANCE_JSON,
+    SPEC_VERSION,
+    domain_vocabulary,
+    measure_vocabulary,
+)
 
 HERE = Path(__file__).parent
 #: Marks a folder this shell built, which a rebuild may replace.
@@ -249,7 +256,7 @@ def build(study: Path, settings: dict | None = None, out: Path | None = None) ->
             "description": a.get("description"),
             **{k: a.get(k) for k in ("analysis_type", "modality", "modalities", "domain", "task", "atlas",
                                      "measures", "role", "design", "effect", "decision", "caveats",
-                                     "references", "retired", "inference")},
+                                     "references", "retired", "inference", "contrasts", "variant")},
             "spec_version": a.get("spec_version"), "warnings": rep.warnings,
             "tables": tables, "figures": figures, "maps": [m.get("path") for m in a.get("maps") or []],
             "provenance": _provenance(folder),
@@ -292,19 +299,26 @@ def build(study: Path, settings: dict | None = None, out: Path | None = None) ->
             href = Path(os.path.relpath((study / href).resolve(), dest)).as_posix()
         links.append({"label": link.get("label", href), "href": href})
 
+    # what the page orders and explains by, from the vocabularies (never from file names)
+    domains = domain_vocabulary()
+    used_domains = {a.get("domain") for a in current if a.get("domain")}
+    domain_list = [{"name": d, "description": domains[d].get("description")} for d in domains if d in used_domains]
+    domain_list += [{"name": d, "description": None} for d in sorted(used_domains - set(domains))]
+    vocab = measure_vocabulary()
+    measures = {m: vocab[m].get("description") for a in current for m in a.get("measures") or [] if m in vocab}
+
     built = datetime.now(timezone.utc).isoformat(timespec="seconds")
     manifest = {
         "title": settings.get("name") or settings.get("title") or study.name,
         "description": settings.get("description"), "links": links,
         "group_labels": settings.get("groups") or {}, "group_order": settings.get("group_order") or [],
         "sections": nav, "analyses": {a["key"]: a for a in current},
+        "domains": domain_list, "measures": measures, "variant_order": settings.get("variants") or {},
         "runs": {a["key"]: a for a in analyses},
         "not_shown": failed, "built": built, "spec_version": SPEC_VERSION,
         "generator": settings.get("generator"),
     }
-    (dest / "assets").mkdir()
-    for name in ("gallery.css", "gallery.js"):
-        shutil.copy2(HERE / "static" / name, dest / "assets" / name)
+    shutil.copytree(HERE / "static", dest / "assets")
     data = json.dumps(manifest, default=str).replace("</", "<\\/")
     page = string.Template((HERE / "index.html").read_text()).substitute(
         title=html.escape(manifest["title"]), manifest=data, built=html.escape(built))
