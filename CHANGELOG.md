@@ -3,6 +3,13 @@
 The specification's identifier is `neurofaune.results`; it moved from neurofaune to
 neurobox-dev (a working name) on 2026-11-03.
 
+## Vocabulary — 2026-11-04 (spec still 0.4.0)
+
+Two EEG measures that source-analytics' `roi_psd`, `electrode_psd` and `roi_cross_freq` test:
+`delta_referenced_power` (alias `delta_ref`), a band's power density referenced to a
+low-frequency anchor window in dB, and `ppc_z`, n:m phase-phase coupling z-scored against
+surrogates, which is tested beside the raw `ppc` and so needs its own name.
+
 ## Gallery shell — 2026-11-03 (spec still 0.4.0)
 
 `neurobox.gallery.build(study, settings, out=None)` and `python -m neurobox gallery <study>`:
