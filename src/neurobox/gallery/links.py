@@ -11,8 +11,8 @@ its producer made it (``generated_by``, producer first). Compared, an analysis m
 version than the pin is flagged: its numbers may not be what the pinned code gives now.
 
 Both are read when the gallery is built, from the study's own files; nothing is fetched, and a
-study with neither file builds as before. Standard library only (pins need Python 3.11's
-``tomllib``; on 3.10 they are skipped).
+study with neither file builds as before. Standard library only: on Python 3.10, which has no
+``tomllib``, the ``[packages]`` table's ``name = "value"`` lines are read directly.
 """
 from __future__ import annotations
 
@@ -28,8 +28,26 @@ _VERSION = re.compile(
 )
 try:
     import tomllib
-except ImportError:  # Python 3.10: no study.toml reader, so no pins to compare against
+except ImportError:  # Python 3.10: read [packages] directly (see _packages_310)
     tomllib = None  # type: ignore[assignment]
+
+_TABLE = re.compile(r"^\s*\[(?P<name>[^\]]+)\]\s*(?:#.*)?$")
+_STRING = re.compile(r"""^\s*(?P<key>[A-Za-z0-9_.-]+|"[^"]+")\s*=\s*(?P<q>["'])(?P<value>.*?)(?P=q)\s*(?:#.*)?$""")
+
+
+def _packages_310(text: str) -> dict[str, str]:
+    """``[packages]``'s string values, without a TOML reader: all a pin is."""
+    out: dict[str, str] = {}
+    inside = False
+    for line in text.splitlines():
+        table = _TABLE.match(line)
+        if table:
+            inside = table["name"].strip() == "packages"
+            continue
+        m = _STRING.match(line) if inside else None
+        if m:
+            out[m["key"].strip('"')] = m["value"]
+    return out
 
 _PIN = re.compile(r"^git\+(?P<url>.+?)(?:\.git)?@(?P<ref>[^@#\s]+)$")
 _SHA = re.compile(r"^[0-9a-f]{7,40}$")
@@ -61,14 +79,13 @@ def findings_by_analysis(study: Path, dest: Path) -> dict[str, list[dict[str, An
 
 def study_pins(study: Path) -> dict[str, str]:
     """Package name (normalised) to the ref ``study.toml`` pins it at."""
-    if tomllib is None:
-        return {}
     try:
-        data = tomllib.loads((study / "study.toml").read_text(encoding="utf-8"))
+        text = (study / "study.toml").read_text(encoding="utf-8")
+        packages = (tomllib.loads(text).get("packages") or {}) if tomllib else _packages_310(text)
     except (OSError, ValueError):
         return {}
     pins = {}
-    for name, spec in (data.get("packages") or {}).items():
+    for name, spec in packages.items():
         m = _PIN.match(str(spec).strip())
         if m:
             pins[_name(name)] = m["ref"]

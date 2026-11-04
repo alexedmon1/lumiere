@@ -232,3 +232,14 @@ def test_code_state_reads_releases_describes_and_commits():
     assert state("weird", "v1") == "unknown"
     assert code_state([{"Name": "other", "Version": "1"}], {"tool": "v1"}) is None
     assert code_state([], {"tool": "v1"}) is None
+
+
+def test_pins_are_read_without_a_toml_reader_too():
+    """Python 3.10 has no tomllib; the [packages] table is read directly, to the same result."""
+    from neurobox.gallery.links import _packages_310
+
+    text = ('[study]\nname = "s"  # the study\n[packages]\n'
+            'source-analytics = "git+https://x/source-analytics.git@v0.8.2"\n'
+            "neurofaune = 'git+https://x/neurofaune.git@9ec3a7f'  # by commit\n[other]\nnope = \"x\"\n")
+    assert _packages_310(text) == {"source-analytics": "git+https://x/source-analytics.git@v0.8.2",
+                                   "neurofaune": "git+https://x/neurofaune.git@9ec3a7f"}
