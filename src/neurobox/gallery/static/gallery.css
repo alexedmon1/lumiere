@@ -1098,6 +1098,15 @@ main {
   font-style: italic;
 }
 
+/* A contrast's tests beyond the strongest five, folded. */
+.sig-more > summary {
+  cursor: pointer;
+  margin: 4px 0 4px 1.4em;
+  font-size: 12px;
+  color: var(--accent-color);
+}
+.sig-more > summary:hover { color: var(--accent-hover); }
+
 .sig-none {
   margin: 14px 0 0;
   font-size: 12px;

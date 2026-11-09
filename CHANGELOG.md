@@ -16,7 +16,9 @@ neurobox-dev (a working name) on 2026-11-03.
   result, at every level the analysis reports: the overall row (a contract table with no
   `element` column), then each element table, named by its `ElementName` (until then by its
   file). Effect size and direction lead (▲/▼: the first-listed group is higher), the
-  corrected p follows; up to 8 elements are named per level and the rest counted.
+  corrected p follows; up to 8 elements are named per level and the rest counted. Each
+  contrast shows its 5 strongest tests (largest effect at any level) and folds the rest
+  under "+N more tests".
 - **The lead line** gives the strongest overall effect of a directed contrast (not an
   omnibus, not an equivalence test, and not a single element's peak) and how many
   comparisons have any significant result, with the count at each level.

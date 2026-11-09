@@ -599,6 +599,8 @@
   }
 
   /* ── The significance summary (digest.py): per contrast, each significant test at every level ── */
+  // Tests shown per contrast, strongest first (largest effect at any level); the rest fold away.
+  var SHOWN_TESTS = 5;
   var EFFECT_SYMBOL = { hedges_g: "g", g: "g", cohens_d: "d", d: "d", r: "r", beta: "β", omega2_partial: "ω²p",
     omega2: "ω²", eta2_partial: "η²p", eta2: "η²", epsilon2: "ε²", f2: "f²", auc: "AUC", accuracy: "acc" };
   function levelWord(name, n) {
@@ -676,7 +678,11 @@
         if (!c.n_significant && c.kind !== "equivalence") {
           html += ' <span class="sig-none-inline">No significant results in ' + plural(c.n_tests, "test") + "</span>";
         }
-        c.tests.forEach(function (t) {
+        c.tests.forEach(function (t, i) {
+          if (i === SHOWN_TESTS) {
+            html += '<details class="sig-more"><summary>+' + plural(c.tests.length - SHOWN_TESTS, "more test") +
+              "</summary>";
+          }
           html += '<div class="sig-item has-region"><strong>' + esc(testLabel(t)) + "</strong>";
           t.levels.forEach(function (l) {
             if (!l.level) {
@@ -690,6 +696,7 @@
           });
           html += "</div>";
         });
+        if (c.tests.length > SHOWN_TESTS) html += "</details>";
         html += "</li>";
       });
       html += "</ul>";
