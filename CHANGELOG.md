@@ -5,6 +5,7 @@ neurobox-dev (a working name) on 2026-11-03.
 
 ## 0.4.2 — 2026-11-09
 
+- **Vocabulary:** `net_transfer_entropy` (alias `net_te`), for source-analytics' `roi_directed`.
 - **`ElementName`** on an `element` column says what one element is, in the singular (`ROI`,
   `region`, `electrode`, `edge`, `cluster`), as `FacetName` names a facet. Optional; a reader
   that needs a name and finds none says "element".

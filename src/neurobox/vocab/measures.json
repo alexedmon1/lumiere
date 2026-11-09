@@ -297,6 +297,13 @@
    "te"
   ]
  },
+ "net_transfer_entropy": {
+  "modality": "eeg",
+  "description": "net transfer entropy: TE from A to B minus TE from B to A, positive where more information is transferred from A to B than back (a statistical asymmetry, not causal influence)",
+  "aliases": [
+   "net_te"
+  ]
+ },
  "dtf": {
   "modality": "eeg",
   "description": "directed transfer function (Kaminski & Blinowska 1991)"
