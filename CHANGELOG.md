@@ -5,6 +5,7 @@ neurobox-dev (a working name) on 2026-11-03.
 
 ## 0.4.2 — 2026-11-09
 
+- **Figures across facets:** a figure naming a `contrast` (and `measure`) but no facet, such as a heatmap of one contrast over every band, matches when that contrast was tested, instead of being warned about as naming no test (§3.3).
 - **Gallery summary:** balanced accuracy (decoding) is shown without a direction arrow, like AUC.
 - **Vocabulary:** `net_transfer_entropy` (alias `net_te`), for source-analytics' `roi_directed`.
 - **`ElementName`** on an `element` column says what one element is, in the singular (`ROI`,

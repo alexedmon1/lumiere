@@ -785,7 +785,13 @@ def check_analysis(folder: Path) -> Report:
                 else:
                     fkey = item.get("facet", "")
                 key = (item.get("measure", ""), item["contrast"], fkey)
-                if key not in tested and ("", item["contrast"], fkey) not in tested:
+                if not fkey:
+                    # 0.4.2: a figure of one contrast across its facets (a heatmap over bands)
+                    # names no single test; it matches when that contrast (and measure) was tested
+                    found = any(c == key[1] and (not key[0] or m in (key[0], "")) for m, c, _f in tested)
+                else:
+                    found = key in tested or ("", item["contrast"], fkey) in tested
+                if not found:
                     rep.warnings.append(f"{kind[:-1]} {item['path']!r}: names a test with no "
                                         f"row in the tests table: {key}")
     for rec in (analysis.get("design") or {}).get("records") or []:

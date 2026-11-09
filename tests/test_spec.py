@@ -723,6 +723,18 @@ def test_0_4_figures_name_facets_and_tests_the_tables_have(eeg):
     assert any("names a test with no row in the tests table" in w for w in rep.warnings), rep.warnings
 
 
+def test_0_4_2_a_figure_of_one_contrast_across_its_facets_matches(eeg):
+    a = _eeg()
+    fig = a["figures"][0]
+    fig.pop("facets", None)
+    fig.pop("facet", None)
+    rep = _check_eeg(eeg, a)
+    assert rep.ok and not [w for w in rep.warnings if "names a test" in w], rep.warnings
+    fig["contrast"] = "never_tested"
+    rep = _check_eeg(eeg, a)
+    assert any("names a test with no row in the tests table" in w for w in rep.warnings), rep.warnings
+
+
 @pytest.mark.parametrize("figure, says", [
     ({"shows": "other.csv"}, "shows 'other.csv', which is not one of its tables"),
 ])

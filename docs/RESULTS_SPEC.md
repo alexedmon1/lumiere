@@ -248,7 +248,9 @@ may say:
 | `drawn_by` | `analysis` (written with the results) or `gallery` (drawn by the tool when it built the gallery, so it can be redrawn) |
 
 A figure that names a test (`measure`, `contrast`, `facet` or `facets`) matches a row of
-the tests table; one that does not is warned about.
+the tests table; one that does not is warned about. From 0.4.2 a figure that names a
+`contrast` (and `measure`) but no facet shows that contrast across its facets (a heatmap
+over bands, say): it matches when the tests table tests that contrast (on that measure).
 
 ### 3.4 Decisions and their reliability (0.4)
 
