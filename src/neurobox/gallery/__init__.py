@@ -53,7 +53,6 @@ from pathlib import Path
 from typing import Any
 
 from ..check import check, read_table
-from .links import code_state, findings_by_analysis, study_pins
 from ..spec import (
     ANALYSIS_JSON,
     PROVENANCE_JSON,
@@ -61,6 +60,8 @@ from ..spec import (
     domain_vocabulary,
     measure_vocabulary,
 )
+from .digest import digest as significance_digest
+from .links import code_state, findings_by_analysis, study_pins
 
 HERE = Path(__file__).parent
 #: Marks a folder this shell built, which a rebuild may replace.
@@ -199,6 +200,15 @@ def _provenance(folder: Path) -> dict:
             "start": run.get("start"), "end": run.get("end"), "subjects": (p.get("subjects") or {}).get("n")}
 
 
+def _digest(folder: Path, analysis: dict) -> dict | None:
+    """The significance summary (digest.py); a summary that cannot be made never stops the build."""
+    try:
+        return significance_digest(folder, analysis)
+    except Exception as exc:  # noqa: BLE001 - one analysis's summary must not stop the gallery
+        warnings.warn(f"{analysis.get('id')}: no significance summary: {exc}", stacklevel=2)
+        return None
+
+
 def collect(roots: list[Path]) -> list[tuple[Path, dict, Any]]:
     """Every conforming analysis folder under ``roots``: (folder, analysis.json, report)."""
     out, seen = [], set()
@@ -273,7 +283,7 @@ def build(study: Path, settings: dict | None = None, out: Path | None = None) ->
                                      "references", "retired", "inference", "contrasts", "variant")},
             "spec_version": a.get("spec_version"), "warnings": rep.warnings,
             "tables": tables, "figures": figures, "maps": [m.get("path") for m in a.get("maps") or []],
-            "provenance": _provenance(folder),
+            "provenance": _provenance(folder), "digest": _digest(folder, a),
         })
 
     # one entry per analysis id: its newest run, with the others listed as earlier runs

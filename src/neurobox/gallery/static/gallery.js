@@ -569,6 +569,7 @@
       }
       html += "</div>";
     }
+    if (a.digest) return html + digestHtml(a, a.digest);
     var cs = a.contrasts || [];
     if (cs.length) {
       var tiers = [], byTier = {};
@@ -595,6 +596,105 @@
       html += "</div>";
     }
     return html;
+  }
+
+  /* ── The significance summary (digest.py): per contrast, each significant test at every level ── */
+  var EFFECT_SYMBOL = { hedges_g: "g", g: "g", cohens_d: "d", d: "d", r: "r", beta: "β", omega2_partial: "ω²p",
+    omega2: "ω²", eta2_partial: "η²p", eta2: "η²", epsilon2: "ε²", f2: "f²", auc: "AUC", accuracy: "acc" };
+  function levelWord(name, n) {
+    if (!name) return "overall";
+    var many = /x$/.test(name) ? name.replace(/ex$/, "ices").replace(/x$/, "ces") : /s$/.test(name) ? name : name + "s";
+    return n === 1 ? name : many;
+  }
+  function levelTitle(d, id, n) {
+    var lv = (d.levels || []).find(function (l) { return l.id === id; }) || { name: "element" };
+    var word = levelWord(lv.name, n);
+    // two unnamed element tables are told apart by their file (until ElementName names them)
+    var unnamed = d.levels.filter(function (l) { return l.id && l.id.indexOf("element:") === 0; });
+    if (lv.id && lv.id.indexOf("element:") === 0 && unnamed.length > 1) word += " (" + lv.id.slice(8) + ")";
+    return word;
+  }
+  function fmtP(p, kind) {
+    if (p === null || p === undefined) return "";
+    var name = kind === "fdr" ? "q" : "p";
+    var s = p < 0.001 ? "<.001" : "=" + p.toFixed(3).replace(/^0/, "");
+    return '<span class="sig-q">' + name + esc(s) + "</span>";
+  }
+  function effectHtml(r, kind) {
+    var sym = EFFECT_SYMBOL[String(r.effect_measure || "").toLowerCase()] || r.effect_measure || "effect";
+    var arrow = "";
+    if (r.signed && r.effect !== null) {
+      arrow = r.effect > 0 ? '<span class="arrow up">▲</span>' : r.effect < 0 ? '<span class="arrow down">▼</span>' : "";
+    }
+    var v = r.effect === null ? "" : '<span class="g">' + esc(sym) + "=" +
+      esc((r.signed ? Math.abs(r.effect) : r.effect).toFixed(2)) + "</span>";
+    return arrow + v + fmtP(r.p, kind);
+  }
+  function testLabel(t) {
+    var m = t.measure ? String(t.measure).replace(/_/g, " ") : "";
+    return (t.facets || []).concat(m ? [m] : []).join(" · ");
+  }
+  function digestHtml(a, d) {
+    var kind = d.p_kind, html = '<div class="sig-summary">';
+    var withAny = d.contrasts.filter(function (c) { return c.n_significant > 0; }).length;
+    var lead = "";
+    if (d.strongest) {
+      var s = d.strongest;
+      lead += '<span class="sig-top">Strongest overall effect: ' + esc(contrastLabel(a, s.contrast)) + ", " +
+        esc(testLabel(s)) + " " + effectHtml(s.row, kind) + ".</span> ";
+    }
+    var parts = (d.levels || []).filter(function (l) { return d.counts[l.id]; }).map(function (l) {
+      return d.counts[l.id] + " " + levelTitle(d, l.id, d.counts[l.id]);
+    });
+    lead += withAny + " of " + plural(d.contrasts.length, "comparison") + " " +
+      (withAny === 1 ? "has" : "have") + " a significant result" + (parts.length ? " (" + parts.join(", ") + ")" : "") +
+      '. <span class="sig-key">Effect size and direction first, ' + (kind === "fdr" ? "FDR q" : "corrected p") +
+      " after; ▲/▼: the first-listed group is higher/lower.</span>";
+    html += '<p class="sig-lead">' + lead + "</p>";
+    var tiers = [], byTier = {};
+    d.contrasts.forEach(function (c) {
+      var t = c.tier || "";
+      if (!byTier[t]) { byTier[t] = []; tiers.push(t); }
+      byTier[t].push(c);
+    });
+    tiers.forEach(function (t) {
+      if (t) html += '<div class="sig-group">' + esc(formatName(t)) + "</div>";
+      html += '<ul class="sig-list">';
+      byTier[t].forEach(function (c) {
+        var pair = c.group_a && c.group_b ? groupLabel(c.group_a) + " vs " + groupLabel(c.group_b) : "";
+        html += '<li class="sig-digest' + (c.n_significant ? "" : " sig-null-item") + '"><span class="sig-contrast">' +
+          esc(c.label) + "</span>" +
+          (c.role ? ' <span class="sig-role sig-role-' + esc(c.role) + '">' + esc(c.role) + "</span>" : "") +
+          (c.gate_on && c.gate_on.length ? ' <span class="sig-role sig-gate" title="Only read if the gating contrast holds">gated on ' +
+            esc(c.gate_on.map(function (gid) { return contrastLabel(a, gid); }).join(", ")) + "</span>" : "") +
+          (c.kind && c.kind !== "contrast" ? ' <span class="sig-facet">' + esc(c.kind) + "</span>" : "") +
+          (pair ? ' <span class="sig-pairs">' + esc(pair) + "</span>" : "");
+        if (c.kind === "equivalence") {
+          html += '<div class="sig-item sig-equiv">Equivalent within the margin in ' + esc(c.n_equivalent) + " of " +
+            plural(c.n_tests, "test") + (c.n_significant ? "; still differs in " + esc(c.n_significant) + ":" : ".") + "</div>";
+        }
+        if (!c.n_significant && c.kind !== "equivalence") {
+          html += ' <span class="sig-none-inline">No significant results in ' + plural(c.n_tests, "test") + "</span>";
+        }
+        c.tests.forEach(function (t) {
+          html += '<div class="sig-item has-region"><strong>' + esc(testLabel(t)) + "</strong>";
+          t.levels.forEach(function (l) {
+            if (!l.level) {
+              html += ' <span class="sig-facet">overall</span> ' + effectHtml(l.rows[0], kind);
+              return;
+            }
+            var named = l.rows.map(function (r) { return esc(r.element) + " " + effectHtml(r, kind); });
+            var more = l.n - l.rows.length;
+            html += '<span class="sig-region"><span class="sig-pairs">' + esc(l.n) + " " + esc(levelTitle(d, l.level, l.n)) +
+              "</span> " + named.join(", ") + (more > 0 ? " (+" + more + " more)" : "") + "</span>";
+          });
+          html += "</div>";
+        });
+        html += "</li>";
+      });
+      html += "</ul>";
+    });
+    return html + "</div>";
   }
 
   /* ── Figures: grouped by what they declare ── */

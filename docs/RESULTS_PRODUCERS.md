@@ -23,6 +23,9 @@ specification and its checker live in neurobox-dev (moved from neurofaune on
    columns; `inference.families` and a `correction_family` column where tests are
    corrected in several families; `EffectMeasure: "per_row"` with an `effect_measure`
    column for mixed tables; the Bayesian terms; and figures' `kind`, `facets` and `shows`.
+   From 0.4.2 every producer names what one row of a per-element table is with
+   `ElementName` on its `element` column (`ROI`, `region`, `electrode`, `edge`, `cluster`),
+   so the gallery's significance summary can say "14 ROIs" rather than "14 elements".
 3. **Write `analysis.json` and `provenance.json`** and check the folder:
 
 ```python

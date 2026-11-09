@@ -3,6 +3,31 @@
 The specification's identifier is `neurofaune.results`; it moved from neurofaune to
 neurobox-dev (a working name) on 2026-11-03.
 
+## 0.4.2 — 2026-11-09
+
+- **`ElementName`** on an `element` column says what one element is, in the singular (`ROI`,
+  `region`, `electrode`, `edge`, `cluster`), as `FacetName` names a facet. Optional; a reader
+  that needs a name and finds none says "element".
+
+## Gallery shell — 2026-11-09: the significance summary (Esprit's results plan, 5b.2)
+
+- **Each analysis's Summary tab** now says what was found, not only which contrasts were
+  tested: per declared contrast, each test (`measure` and its facets) with a significant
+  result, at every level the analysis reports: the overall row (a contract table with no
+  `element` column), then each element table, named by its `ElementName` (until then by its
+  file). Effect size and direction lead (▲/▼: the first-listed group is higher), the
+  corrected p follows; up to 8 elements are named per level and the rest counted.
+- **The lead line** gives the strongest overall effect of a directed contrast (not an
+  omnibus, not an equivalence test, and not a single element's peak) and how many
+  comparisons have any significant result, with the count at each level.
+- **Equivalence contrasts** say in how many tests equivalence was concluded (`equivalent`),
+  then list where the difference is still significant.
+- **Read only from declared fields:** `contrast`, `measure`, `facet`, `element`, `effect_size`
+  (with `EffectMeasure` or `effect_measure`), `p_value` (`PKind`), `significant`, else
+  `p_value` below the family's or correction's `alpha` (0.05 when none is stated). Computed
+  at build time from whole tables (`gallery/digest.py`), not the 500 rows the page embeds;
+  an analysis whose summary cannot be made is still shown, with a warning.
+
 ## Gallery shell — 2026-11-04 (no change to the specification)
 
 - **`#/id/<id>`** opens an analysis by its `analysis.json` id, whichever run is current: the

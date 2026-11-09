@@ -39,7 +39,8 @@
       "Scale": {"enum": ["log10", "linear"]},
       "Basis": {"type": "string", "minLength": 1},
       "Rule": {"type": "string", "minLength": 1},
-      "QCMetric": {"type": "boolean"}
+      "QCMetric": {"type": "boolean"},
+      "ElementName": {"type": "string", "minLength": 1}
     }
   }
 }

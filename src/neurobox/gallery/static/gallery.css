@@ -1091,6 +1091,13 @@ main {
   color: var(--text-muted);
 }
 
+/* The summary built from the tables (digest.py): equivalence contrasts say how many tests
+   concluded equivalence before listing where the group still differs. */
+.sig-equiv {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
 .sig-none {
   margin: 14px 0 0;
   font-size: 12px;

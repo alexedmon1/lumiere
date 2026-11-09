@@ -16,7 +16,7 @@ its page shell is moving into neurobox-dev, so that each tool's `gallery build`
 (neurofaune for MRI, source-analytics for EEG) builds its studies' galleries from these
 files. The identifier in every file stays `"neurofaune.results"` until the final name.
 
-**Status: 0.4.1, draft.** It becomes 1.0.0 when one MRI study (cuprizone) and one EEG
+**Status: 0.4.2, draft.** It becomes 1.0.0 when one MRI study (cuprizone) and one EEG
 study (FORGE) both build their galleries from it end to end. Until then a minor version may change a field;
 from 1.0.0 on, versions follow semver and a reader written for 1.x reads every 1.y.
 0.2 adds identity and vocabulary (§3.1): what one analysis is, how it is named, and
@@ -377,7 +377,7 @@ A reader shows a run whose status is not `completed` as such, never silently.
 | `contrast` | test identifier within the analysis; `measure` + `contrast` (+ `facet`, or from 0.4 every named facet) identify a test |
 | `contrast_label` | the contrast in words |
 | `facet` | any further split of the tests (window, timepoint, family); from 0.4 [`FacetName`] when a table has several (§5.2) |
-| `element` | per-element rows: the cluster id, ROI name, edge `"A -- B"`, component id |
+| `element` | per-element rows: the cluster id, ROI name, edge `"A -- B"`, component id; from 0.4.2 [`ElementName`: what one element is, in the singular: `ROI`, `region`, `electrode`, `edge`, `cluster`, `component`, `vertex`] |
 | `test_kind` | `two_group`, `one_sample`, `regression`, `interaction`, `custom`; from 0.4 `equivalence` (§5.3) |
 | `tested_direction` | what a positive statistic means, in words: `"cuprizone > control"`, `"mean > 0"` |
 | `observed_direction` | the direction the effect actually went, in the same words |

@@ -6,7 +6,7 @@ neurofaune's imaging dependencies are not installed (neurovrai, a reader's lapto
 from __future__ import annotations
 
 SPEC = "neurofaune.results"
-SPEC_VERSION = "0.4.1"
+SPEC_VERSION = "0.4.2"
 #: The (major, minor) versions this package reads: every 0.x up to its own. A 0.1 folder
 #: is checked by 0.1's rules; the rules added in 0.2 apply to folders that declare 0.2 or
 #: later, and so on: each rule applies to folders declaring the version that added it or later.
@@ -109,11 +109,13 @@ QUALIFIERS = ("Standard", "EffectMeasure", "EffectScope", "CILevel", "StatName",
               # 0.4
               "FacetName", "PercentOf", "Rope", "Scale", "Basis",
               # 0.4.1
-              "Rule", "QCMetric")
+              "Rule", "QCMetric",
+              # 0.4.2
+              "ElementName")
 #: Qualifiers added after 0.3, with the version that added them. The checker reads versions
-#: by (major, minor), so 0.4.1's additions, all optional, are checked in any 0.4 folder.
+#: by (major, minor), so 0.4.1's and 0.4.2's additions, all optional, are checked in any 0.4 folder.
 QUALIFIERS_SINCE: dict[str, tuple[int, int]] = dict.fromkeys(
-    ("FacetName", "PercentOf", "Rope", "Scale", "Basis", "Rule", "QCMetric"), (0, 4))
+    ("FacetName", "PercentOf", "Rope", "Scale", "Basis", "Rule", "QCMetric", "ElementName"), (0, 4))
 
 
 # ── 0.2: identity and vocabulary ──────────────────────────────────────────────────
