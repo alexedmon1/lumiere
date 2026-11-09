@@ -602,7 +602,7 @@
   // Tests shown per contrast, strongest first (largest effect at any level); the rest fold away.
   var SHOWN_TESTS = 5;
   var EFFECT_SYMBOL = { hedges_g: "g", g: "g", cohens_d: "d", d: "d", r: "r", beta: "β", omega2_partial: "ω²p",
-    omega2: "ω²", eta2_partial: "η²p", eta2: "η²", epsilon2: "ε²", f2: "f²", auc: "AUC", accuracy: "acc" };
+    omega2: "ω²", eta2_partial: "η²p", eta2: "η²", epsilon2: "ε²", f2: "f²", auc: "AUC", accuracy: "acc", balanced_accuracy: "BA" };
   function levelWord(name, n) {
     if (!name) return "overall";
     var many = /x$/.test(name) ? name.replace(/ex$/, "ices").replace(/x$/, "ces") : /s$/.test(name) ? name : name + "s";

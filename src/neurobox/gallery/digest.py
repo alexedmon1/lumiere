@@ -30,7 +30,7 @@ from ..check import read_table
 NAMED = 8
 #: Effect measures that have no direction: shown without an arrow.
 UNSIGNED = {"eta2", "eta2_partial", "omega2", "omega2_partial", "epsilon2", "f2", "r2", "auc", "accuracy",
-            "cramers_v", "w"}
+            "balanced_accuracy", "cramers_v", "w"}
 CONTRACT = ("tests", "clusters", "elements")
 _TRUE = {"true", "1", "yes"}
 

@@ -118,6 +118,15 @@ def test_unsigned_effects_have_no_direction(eeg):
     assert omni["tests"][0]["levels"][0]["rows"][0]["signed"] is False
 
 
+def test_decoding_accuracy_has_no_direction(tmp_path):
+    f = tmp_path / "an"
+    f.mkdir()
+    tables = [_table(f, "dec.csv", [_row("disease", "Alpha", 0.81, 0.01, gt="balanced_accuracy")], element=False)]
+    d = digest(f, {"contrasts": CONTRASTS, "tables": tables})
+    (row,) = next(c for c in d["contrasts"] if c["id"] == "disease")["tests"][0]["levels"][0]["rows"]
+    assert row["signed"] is False and d["strongest"] is None      # no direction, so no "strongest" lead
+
+
 def test_unnamed_element_tables_stay_apart(tmp_path):
     f = tmp_path / "an"
     f.mkdir()
