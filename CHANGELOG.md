@@ -3,6 +3,15 @@
 The specification's identifier is `neurofaune.results`; it moved from neurofaune to
 neurobox-dev (a working name) on 2026-11-03.
 
+## 0.4.4 — 2026-11-10
+
+- **Vocabulary:** `ReHo_zscore` and `fALFF_zscore` (functional MRI): ReHo and fALFF with each session's map
+  z-scored within its own brain mask, as cuprizone's voxelwise functional battery writes them. Their own
+  entries, not aliases of `ReHo` and `fALFF`: a z-scored value is relative to that brain.
+- **Figures across a measure (§3.3), stated:** a figure that names only a `measure` shows it across every
+  contrast and facet (an overlay of where any is significant, say), and its caption says so. The checker has
+  always accepted it; the specification now says it.
+
 ## 0.4.3 — 2026-11-10
 
 - **`n_edges`**, a network component's extent in edges (the NBS), beside a cluster's `n_voxels` and

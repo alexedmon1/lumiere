@@ -120,6 +120,14 @@
   "modality": "func",
   "description": "amplitude of low-frequency fluctuations (resting-state BOLD)"
  },
+ "ReHo_zscore": {
+  "modality": "func",
+  "description": "regional homogeneity, each session's map z-scored within its own brain mask (a value relative to that brain, not ReHo itself)"
+ },
+ "fALFF_zscore": {
+  "modality": "func",
+  "description": "fractional amplitude of low-frequency fluctuations, each session's map z-scored within its own brain mask (a value relative to that brain, not fALFF itself)"
+ },
  "FC": {
   "modality": "func",
   "description": "functional connectivity (correlation of regional BOLD time series)"

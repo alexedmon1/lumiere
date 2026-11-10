@@ -251,6 +251,9 @@ A figure that names a test (`measure`, `contrast`, `facet` or `facets`) matches 
 the tests table; one that does not is warned about. From 0.4.2 a figure that names a
 `contrast` (and `measure`) but no facet shows that contrast across its facets (a heatmap
 over bands, say): it matches when the tests table tests that contrast (on that measure).
+A figure that names no `contrast` is not matched to a test: one that names only a `measure` shows
+that measure across its tests, every contrast and facet (where any of them is significant, say), and its
+caption says what it spans (stated in 0.4.4; checkers have always accepted it).
 
 ### 3.4 Decisions and their reliability (0.4)
 

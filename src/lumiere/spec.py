@@ -6,7 +6,7 @@ neurofaune's imaging dependencies are not installed (neurovrai, a reader's lapto
 from __future__ import annotations
 
 SPEC = "neurofaune.results"
-SPEC_VERSION = "0.4.3"
+SPEC_VERSION = "0.4.4"
 #: The (major, minor) versions this package reads: every 0.x up to its own. A 0.1 folder
 #: is checked by 0.1's rules; the rules added in 0.2 apply to folders that declare 0.2 or
 #: later, and so on: each rule applies to folders declaring the version that added it or later.
