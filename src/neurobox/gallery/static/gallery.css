@@ -1,10 +1,13 @@
-/* === CSS Custom Properties (Themes) === */
+/* === CSS Custom Properties (Themes) ===
+   Backgrounds are the browser's own (Canvas), as on Esprit and Duet, so the three read as one in light
+   and dark; panels are Canvas mixed a little toward the text colour. */
 :root,
 [data-theme="light"] {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f6f6f7;
+  color-scheme: light;
+  --bg-primary: Canvas;
+  --bg-secondary: color-mix(in srgb, Canvas 95%, CanvasText);
   --bg-sidebar: transparent;
-  --bg-card: #ffffff;
+  --bg-card: Canvas;
   --bg-hover: #8882;
   --bg-active: #2563eb;
   --text-primary: #1d1d1f;
@@ -17,16 +20,17 @@
   --highlight-border: #ffd600;
   --shadow: 0 1px 3px rgba(0,0,0,0.08);
   --thumb-border: 1px solid #e0e0e0;
-  --table-stripe: #f9f9fa;
-  --table-header-bg: #f1f1f3;
+  --table-stripe: color-mix(in srgb, Canvas 97%, CanvasText);
+  --table-header-bg: color-mix(in srgb, Canvas 92%, CanvasText);
   --scrollbar-thumb: #c0c0c0;
 }
 
 [data-theme="dark"] {
-  --bg-primary: #121212;
-  --bg-secondary: #1b1b1f;
+  color-scheme: dark;
+  --bg-primary: Canvas;
+  --bg-secondary: color-mix(in srgb, Canvas 95%, CanvasText);
   --bg-sidebar: transparent;
-  --bg-card: #18181b;
+  --bg-card: Canvas;
   --bg-hover: #8882;
   --bg-active: #3b5bdb;
   --text-primary: #e0e0e8;
@@ -39,8 +43,8 @@
   --highlight-border: #b39700;
   --shadow: 0 1px 3px rgba(0,0,0,0.3);
   --thumb-border: 1px solid #333;
-  --table-stripe: #17171a;
-  --table-header-bg: #202024;
+  --table-stripe: color-mix(in srgb, Canvas 97%, CanvasText);
+  --table-header-bg: color-mix(in srgb, Canvas 92%, CanvasText);
   --scrollbar-thumb: #444;
 }
 
