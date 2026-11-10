@@ -651,6 +651,12 @@
   function digestHtml(a, d) {
     var kind = d.p_kind, html = '<div class="sig-summary">';
     var withAny = d.contrasts.filter(function (c) { return c.n_significant > 0; }).length;
+    // a network or cluster analysis reports each one's size, not an effect size
+    var sized = d.contrasts.some(function (c) {
+      return c.tests.some(function (t) {
+        return t.levels.some(function (l) { return l.rows.some(function (r) { return r.extent; }); });
+      });
+    });
     var lead = "";
     if (d.strongest) {
       var s = d.strongest;
@@ -662,8 +668,9 @@
     });
     lead += withAny + " of " + plural(d.contrasts.length, "comparison") + " " +
       (withAny === 1 ? "has" : "have") + " a significant result" + (parts.length ? " (" + parts.join(", ") + ")" : "") +
-      '. <span class="sig-key">Effect size and direction first, ' + (kind === "fdr" ? "FDR q" : "corrected p") +
-      " after; ▲/▼: the first-listed group is higher/lower.</span>";
+      '. <span class="sig-key">' + (sized ? "Size (edges, voxels) and direction" : "Effect size and direction") +
+      " first, " + (kind === "fdr" ? "FDR q" : "corrected p") +
+      " after; ▲/▼: the first-listed group is higher/lower" + (sized ? "; ▲▼: some of each" : "") + ".</span>";
     html += '<p class="sig-lead">' + lead + "</p>";
     var tiers = [], byTier = {};
     d.contrasts.forEach(function (c) {
