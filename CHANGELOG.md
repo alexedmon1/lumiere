@@ -3,6 +3,11 @@
 The specification's identifier is `neurofaune.results`; it moved from neurofaune to
 neurobox-dev (a working name) on 2026-11-03.
 
+## Gallery shell — 2026-11-10
+
+- **Sidebar:** no count beside a section of several analyses (Connectivity showed "3"); it was
+  unexplained and the old gallery had none. The Figures and Tables tabs keep their counts.
+
 ## 0.4.2 — 2026-11-09
 
 - **Figures across facets:** a figure naming a `contrast` (and `measure`) but no facet, such as a heatmap of one contrast over every band, matches when that contrast was tested, instead of being warned about as naming no test (§3.3).

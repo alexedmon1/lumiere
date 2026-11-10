@@ -205,9 +205,7 @@
       g.designs.forEach(function (d) {
         if (g.designs.length > 1 || d.axis) html += '<div class="nav-study-design">' + esc(d.label) + "</div>";
         d.domains.forEach(function (de) {
-          var n = de.keys.length;
-          html += navItem(domainRoute(gi, d.key, de.name), domainLabel(de.name),
-            n > 1 ? ' <span class="tab-count">' + n + "</span>" : "");
+          html += navItem(domainRoute(gi, d.key, de.name), domainLabel(de.name));
         });
       });
     });
