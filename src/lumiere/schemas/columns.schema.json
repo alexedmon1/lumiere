@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/alexedmon1/neurobox-dev/src/neurobox/schemas/columns.schema.json",
+  "$id": "https://github.com/alexedmon1/lumiere/src/lumiere/schemas/columns.schema.json",
   "title": "neurofaune.results column dictionary (<table>.json)",
   "type": "object",
   "minProperties": 1,

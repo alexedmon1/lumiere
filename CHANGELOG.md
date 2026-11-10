@@ -5,6 +5,12 @@ neurobox-dev (a working name) on 2026-11-03.
 
 ## Gallery shell — 2026-11-10
 
+- **The Python names are Lumière's:** install `lumiere` (from github.com/alexedmon1/lumiere), import `lumiere`,
+  run `lumiere check` / `lumiere gallery` (or `python -m lumiere`). `neurobox` forwards to it (`import neurobox`,
+  `neurobox.gallery`, the `neurobox` command) until every tool has moved. A gallery's marker is
+  `.lumiere-gallery`; one carrying the old `.neurobox-gallery` is still rebuilt. The reader's light or dark choice
+  is kept as `lumiere-theme`. The schemas' `$id`s point at the new repository. The identifier written in
+  `analysis.json` stays `neurofaune.results`.
 - **The repository is `lumiere`** (github.com/alexedmon1/lumiere; the old address redirects). The README says what
   Lumière is, what it needs, how to build, read and check a gallery, with its banner (`docs/brand/`). The Python
   names (`neurobox-dev`, `neurobox`) are unchanged for now.

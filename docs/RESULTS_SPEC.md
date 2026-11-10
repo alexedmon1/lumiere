@@ -4,15 +4,15 @@ What an analysis writes so that **anyone can read its results without the packag
 that produced them**: a plain pandas script, a manuscript table, a study gallery.
 Producers are neurofaune, neurovrai, source-analytics, source-localization and any
 study's own orchestration scripts; `RESULTS_PRODUCERS.md` says how each one meets this.
-The specification, its JSON Schemas (`src/neurobox/schemas/`) and the conformance
-checker (`python -m neurobox check`) live in **neurobox-dev** (a working name). They
+The specification, its JSON Schemas (`src/lumiere/schemas/`) and the conformance
+checker (`lumiere check`) live in **Lumière** (github.com/alexedmon1/lumiere; Lumière until 2026-11-10). They
 moved there from neurofaune, unchanged, on 2026-11-03. It is optional for every tool:
 neurofaune takes it as an extra (`neurofaune[results]`) and re-exports it as
 `neurofaune.results`; without it, neurofaune still writes its tables but not their
 descriptions, and `neurofaune results check` says how to install it.
 
 **Readers.** A study's gallery reads it. Today that is source-lightbox for EEG studies;
-its page shell is moving into neurobox-dev, so that each tool's `gallery build`
+its page shell is moving into Lumière, so that each tool's `gallery build`
 (neurofaune for MRI, source-analytics for EEG) builds its studies' galleries from these
 files. The identifier in every file stays `"neurofaune.results"` until the final name.
 
@@ -171,14 +171,14 @@ tables by method — is written by the producer, in words every producer uses:
   `-` (`neurofaune.results.spec.analysis_id(modality, type, name...)` builds one). A
   reader can sort by the id alone; the id never contradicts the fields.
 - **`measures`** are written by their canonical names in the measure vocabulary,
-  `src/neurobox/vocab/measures.json` (canonical name → modality, or `modalities` for a
+  `src/lumiere/vocab/measures.json` (canonical name → modality, or `modalities` for a
   measure several use, such as graph metrics; description; aliases: `FICVF` not `NDI`,
   `CSWF` not `CSFF`, `Cr+PCr` not `tCr`, and from 0.4 `aperiodic_exponent` not
   `exponent`, `transfer_entropy` not `te`). A measure the vocabulary does not have is
-  allowed and warned about; it is added to the vocabulary, in neurobox-dev, with a
+  allowed and warned about; it is added to the vocabulary, in Lumière, with a
   CHANGELOG line, rather than spelled anew by each producer.
 - **`domain`** (0.4, optional) is what the analysis is about — the signal or tissue
-  property — from the domain vocabulary, `src/neurobox/vocab/domains.json`, each domain
+  property — from the domain vocabulary, `src/lumiere/vocab/domains.json`, each domain
   tagged with the modalities that use it: `spectral`, `aperiodic`, `evoked`,
   `connectivity`, `cross_frequency`, `directed`, `decoding`, `localization` for EEG;
   `microstructure`, `morphometry`, `relaxometry`, `function`, `metabolites`, `perfusion`
@@ -598,7 +598,7 @@ above 0, a linear `bf10` above 0, a `reading` within its `Levels`, a `calibratio
 within [0, 1], and `rests_on` naming listed tables. A folder that declares an earlier
 version may not use any 0.4 field, term, qualifier or value. Each folder is checked by the
 rules of the version it declares. Exit status 0 when every
-folder conforms. The schemas in `src/neurobox/schemas/` are plain JSON Schema
+folder conforms. The schemas in `src/lumiere/schemas/` are plain JSON Schema
 (draft 2020-12) and work with any validator; the checker itself needs only the
 standard library, so it can run where no producer's dependencies are installed.
 
@@ -607,7 +607,7 @@ standard library, so it can run where no producer's dependencies are installed.
 `spec_version` is semver. A reader accepts any version with the major version it
 was written for — while the major is 0, every minor up to its own (a 0.4 reader reads
 0.1 to 0.4) — and reports, never guesses, a field it does not know. Producers write
-the version they were built against. Changes are listed in neurobox-dev's
+the version they were built against. Changes are listed in Lumière's
 `CHANGELOG.md`. A patch version (0.4.1) adds only optional fields; the checker reads a
 folder's version by its major and minor, so it checks 0.4.1's fields wherever a 0.4 folder
 uses them, and refuses them in older folders.

@@ -66,7 +66,9 @@ from .links import code_state, findings_by_analysis, study_pins
 
 HERE = Path(__file__).parent
 #: Marks a folder this shell built, which a rebuild may replace.
-MARKER = ".neurobox-gallery"
+MARKER = ".lumiere-gallery"
+#: The marker before 2026-11-10, when Lumière was Lumière: a gallery carrying it is ours too.
+OLD_MARKERS = (".neurobox-gallery",)
 #: The standard place of a study's gallery, relative to the study's folder.
 STANDARD = "gallery"
 #: Rows of a table embedded in the page; the full table is copied and linked.
@@ -254,7 +256,7 @@ def build(study: Path, settings: dict | None = None, out: Path | None = None) ->
     if dest == study or dest in roots:
         raise GalleryError(f"the gallery folder {dest} would replace the study's own files")
     if dest.exists():
-        if any(dest.iterdir()) and not (dest / MARKER).is_file():
+        if any(dest.iterdir()) and not any((dest / m).is_file() for m in (MARKER, *OLD_MARKERS)):
             raise GalleryError(f"{dest} is not empty and was not built by this shell (no {MARKER}); "
                                "choose another output folder, or move it away first")
         shutil.rmtree(dest)
@@ -365,6 +367,6 @@ def build(study: Path, settings: dict | None = None, out: Path | None = None) ->
     page = string.Template((HERE / "index.html").read_text()).substitute(
         title=html.escape(manifest["title"]), manifest=data, built=html.escape(built), assets_v=assets_v)
     (dest / "index.html").write_text(page, encoding="utf-8")
-    (dest / MARKER).write_text(f"built {built}; rebuilt by neurobox.gallery.build, never edited\n")
+    (dest / MARKER).write_text(f"built {built}; rebuilt by lumiere.gallery.build, never edited\n")
     return dest / "index.html"
 

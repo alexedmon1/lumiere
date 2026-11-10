@@ -45,7 +45,7 @@ wheels = [
 ]
 
 [[package]]
-name = "neurobox-dev"
+name = "lumiere"
 version = "0.4.2"
 source = { editable = "." }
 

@@ -1,7 +1,7 @@
 # Producing results — neurofaune, neurovrai, source-analytics, study scripts
 
 How each producer writes analysis folders that meet `RESULTS_SPEC.md`. The
-specification and its checker live in neurobox-dev (moved from neurofaune on
+specification and its checker live in Lumière (moved from neurofaune on
 2026-11-03); every producer, neurofaune included, is held to the same checker.
 
 ## 1. The recipe (any producer)
@@ -29,8 +29,8 @@ specification and its checker live in neurobox-dev (moved from neurofaune on
 3. **Write `analysis.json` and `provenance.json`** and check the folder:
 
 ```python
-from neurobox import provenance, write_analysis, write_columns   # neurofaune code may keep `neurofaune.results`
-from neurobox.write import now
+from lumiere import provenance, write_analysis, write_columns   # neurofaune code may keep `neurofaune.results`
+from lumiere.write import now
 
 tests.to_csv(out / "tests.csv", index=False)
 write_columns(out / "tests.csv", MY_COLUMNS)            # every column described, or KeyError
@@ -51,28 +51,28 @@ write_analysis(out, {
 
    From 0.2 each call writes one **run** (RESULTS_SPEC.md §3.2): give it
    `"run": {"id": ..., "label": ...}` (else the current UTC time is its id) and write it
-   into `neurobox.spec.run_folder(root, analysis_id, run_id)`. **Adding tests
+   into `lumiere.spec.run_folder(root, analysis_id, run_id)`. **Adding tests
    to an analysis later** is a new run in a new folder beside the first — never an edit
    of the first. **Re-running tests** (a fixed mask, a joint correction) is a new run
    whose `supersedes` names the runs it replaces; the old folders stay.
 
 4. **Test it**: the producer's own test suite builds a small synthetic analysis
-   per analysis type and asserts that `neurobox.check(folder)` passes.
-   On real outputs: `python -m neurobox check <results root>` (or `neurofaune results check`).
+   per analysis type and asserts that `lumiere.check(folder)` passes.
+   On real outputs: `lumiere check <results root>` (or `neurofaune results check`).
 
 ## 2. Getting the checker and writer
 
-The package `neurobox` (in neurobox-dev) is standard-library only, and **optional**: a
+The package `lumiere` is standard-library only, and **optional**: a
 producer should run without it and use it when installed. Two ways in:
 
 - **As an optional extra**, pinned to a commit like any other pin
-  (`neurobox-dev @ git+https://github.com/alexedmon1/neurobox-dev@<ref>`), imported as
-  `neurobox`. neurofaune does this (`neurofaune[results]`): with it, analyses also write
+  (`lumiere @ git+https://github.com/alexedmon1/lumiere@<ref>`), imported as
+  `lumiere`. neurofaune does this (`neurofaune[results]`): with it, analyses also write
   the column dictionaries, `analysis.json` and `provenance.json`; without it, they write
   their tables and say how to install it. It re-exports the package as
   `neurofaune.results`, so existing code keeps working.
 - **Run the checker in isolation**, without touching the producer's environment:
-  `uvx --from "neurobox-dev @ git+https://github.com/alexedmon1/neurobox-dev@<ref>" neurobox check <dir>`.
+  `uvx --from "lumiere @ git+https://github.com/alexedmon1/lumiere@<ref>" lumiere check <dir>`.
 
 Copying the package into a producer is no longer needed now that it installs on its own.
 
@@ -91,7 +91,7 @@ needs numpy, scipy, pandas and nibabel, and is not standard-library.
 
 **Every runner writes its own folder at the end of its run** — the goal for every row
 above: a study then never needs an exporter of its own, and a new analysis arrives in a
-reader already identified. Ids come from `neurobox.spec.analysis_id(modality,
+reader already identified. Ids come from `lumiere.spec.analysis_id(modality,
 analysis_type, name)`, so they follow §3.1 of the specification by construction.
 
 A non-conforming folder at the end of a long run is logged, not raised. Tests
@@ -256,16 +256,16 @@ matched on an id prefix) is updated at the same time.
 
 Choose the table roles first: what one row is. Then map columns to standard terms
 and fill in the contract (§6 of the specification). If a standard term is missing,
-propose it in neurobox-dev with a `spec_version` bump and a `CHANGELOG.md` entry —
+propose it in Lumière with a `spec_version` bump and a `CHANGELOG.md` entry —
 never repurpose an existing term.
 
 ## 7. murinet
 
 murinet never imports neurofaune (separate environments; they exchange files), so it
 writes analysis folders itself: the JSON files with the standard library, or with
-neurobox-dev as a dependency (§2), which needs nothing from neurofaune. Its own tests run
+Lumière as a dependency (§2), which needs nothing from neurofaune. Its own tests run
 the checker on a synthetic folder per analysis kind, in isolation:
-`uvx --from "neurobox-dev @ git+…@<ref>" neurobox check <folder>`.
+`uvx --from "lumiere @ git+…@<ref>" lumiere check <folder>`.
 
 What it writes, by kind (the `id` per §3.1; `provenance.json`'s `generated_by` names
 murinet, which is how a reader knows the producer — not the id):

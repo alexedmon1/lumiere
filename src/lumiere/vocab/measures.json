@@ -1,5 +1,5 @@
 {
- "_comment": "The results specification's measure vocabulary (0.2): canonical name -> modality (or, for a measure several modalities use, modalities), description, aliases. A known measure is written by its canonical name; an analysis may list a measure not here (the checker warns) -- add it here, in neurobox-dev, with a CHANGELOG line, rather than inventing a spelling. EEG measures were added in 0.4.",
+ "_comment": "The results specification's measure vocabulary (0.2): canonical name -> modality (or, for a measure several modalities use, modalities), description, aliases. A known measure is written by its canonical name; an analysis may list a measure not here (the checker warns) -- add it here, in Lumière, with a CHANGELOG line, rather than inventing a spelling. EEG measures were added in 0.4.",
  "FA": {
   "modality": "dwi",
   "description": "fractional anisotropy (DTI)"

@@ -9,7 +9,7 @@
   /* Light or dark before the page is drawn: the reader's choice, else the computer's setting. */
   (function () {
     var t = null;
-    try { t = localStorage.getItem("neurobox-theme"); } catch (e) {}
+    try { t = localStorage.getItem("lumiere-theme"); } catch (e) {}
     document.documentElement.setAttribute("data-theme", t === "light" || t === "dark" ? t
       : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
   })();

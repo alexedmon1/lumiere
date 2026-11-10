@@ -1,11 +1,11 @@
-"""The significance summary (neurobox.gallery.digest), read from the tables' standard terms."""
+"""The significance summary (lumiere.gallery.digest), read from the tables' standard terms."""
 import json
 
 import pandas as pd
 import pytest
 
-from neurobox import check, gallery, provenance, write_analysis, write_columns
-from neurobox.gallery.digest import digest
+from lumiere import check, gallery, provenance, write_analysis, write_columns
+from lumiere.gallery.digest import digest
 
 
 def _cols(element_name=None, element=True, equivalence=False):

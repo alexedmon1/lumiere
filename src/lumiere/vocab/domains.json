@@ -1,5 +1,5 @@
 {
- "_comment": "The results specification's domain vocabulary (0.4): what an analysis is about, the signal or tissue property, so a gallery can group analyses. Each domain names the modalities that use it. An analysis may give a domain not here (the checker warns) -- add it here, in neurobox-dev, with a CHANGELOG line.",
+ "_comment": "The results specification's domain vocabulary (0.4): what an analysis is about, the signal or tissue property, so a gallery can group analyses. Each domain names the modalities that use it. An analysis may give a domain not here (the checker warns) -- add it here, in Lumière, with a CHANGELOG line.",
  "spectral": {
   "modalities": [
    "eeg"

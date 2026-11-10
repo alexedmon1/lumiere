@@ -39,11 +39,12 @@ that made it; a checker and a small writer come with it.
 ## Install
 
 ```bash
-pip install "neurobox-dev @ git+https://github.com/alexedmon1/lumiere@<commit>"
+pip install "lumiere @ git+https://github.com/alexedmon1/lumiere@<commit>"
 ```
 
-Pin a commit: the specification is still a draft. The Python names have not followed the repository's new
-name yet: you install `neurobox-dev`, import `neurobox`, and run `python -m neurobox` (or `neurobox`).
+Pin a commit: the specification is still a draft. This gives you the `lumiere` command (also
+`python -m lumiere`) and the `lumiere` package. Code written for its old name, `neurobox`, keeps working: that
+name forwards to `lumiere` until every tool has moved.
 
 ## Build a study's gallery
 
@@ -62,8 +63,8 @@ neurofaune does the same for MRI studies.
 **From Lumière directly**, when the analysis folders are already written:
 
 ```bash
-python -m neurobox gallery path/to/study                 # reads gallery.yaml or gallery.json there
-python -m neurobox gallery path/to/study --out /tmp/try  # elsewhere, say to compare with an older gallery
+lumiere gallery path/to/study                 # reads gallery.yaml or gallery.json there
+lumiere gallery path/to/study --out /tmp/try  # elsewhere, say to compare with an older gallery
 ```
 
 Then open `path/to/study/gallery/index.html`. To look at it from another computer, serve the folder and
@@ -123,8 +124,8 @@ make.
 ## Check analysis folders
 
 ```bash
-python -m neurobox check path/to/results          # every analysis folder at or under the path
-python -m neurobox check path/to/results --json   # one JSON report per folder
+lumiere check path/to/results          # every analysis folder at or under the path
+lumiere check path/to/results --json   # one JSON report per folder
 ```
 
 Each folder gets `OK` or `FAIL` with its errors and warnings; the exit code is 0 only when every folder
@@ -140,7 +141,7 @@ The specification is [`docs/RESULTS_SPEC.md`](docs/RESULTS_SPEC.md);
 script. The writer does the bookkeeping:
 
 ```python
-from neurobox.write import write_analysis, write_columns, provenance
+from lumiere import write_analysis, write_columns, provenance
 ```
 
 `write_columns` writes a table's dictionary, `provenance` builds the provenance record, and
@@ -156,8 +157,9 @@ python -m pytest
 ruff check src tests
 ```
 
-The page is `src/neurobox/gallery/index.html` and `static/` (`gallery.css`, `gallery.js`, and the vendored
-GLightbox and Tablesort, with their notices in `static/vendor/NOTICE.md`). `CHANGELOG.md` lists every change
+The page is `src/lumiere/gallery/index.html` and `static/` (`gallery.css`, `gallery.js`, and the vendored
+GLightbox and Tablesort, with their notices in `static/vendor/NOTICE.md`); `src/neurobox/` only forwards
+the old name. `CHANGELOG.md` lists every change
 to the specification and the gallery.
 
 ## Where it came from
@@ -165,9 +167,11 @@ to the specification and the gallery.
 The specification began in neurofaune as `neurofaune.results` (0.3.0) and moved here on 2026-11-03, so EEG
 tools could use it without installing neurofaune, which re-exports it. The repository was called
 `neurobox-dev`, a working name, until 2026-11-10, when the gallery was named Lumière (light, in French, beside
-Esprit and Duet) and the repository with it; GitHub sends the old address here. The identifier written in each
+Esprit and Duet) and the repository, package and command with it; GitHub sends the old address here, and
+`import neurobox` still works. Galleries built before then carry `.neurobox-gallery` and are rebuilt as
+Lumière's. The identifier written in each
 `analysis.json` is still `"neurofaune.results"`, so folders written before the rename stay valid.
 
 ## Licence
 
-MIT. GLightbox and Tablesort are MIT too (`src/neurobox/gallery/static/vendor/NOTICE.md`).
+MIT. GLightbox and Tablesort are MIT too (`src/lumiere/gallery/static/vendor/NOTICE.md`).

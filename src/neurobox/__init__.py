@@ -1,15 +1,20 @@
-"""The results specification: what an analysis writes so anyone can read it.
+"""The old name of Lumière (``lumiere``), kept so tools not yet moved over keep working.
 
-See docs/RESULTS_SPEC.md (the specification) and docs/RESULTS_PRODUCERS.md (how
-neurofaune, neurovrai, source-analytics and study scripts meet it). Standard library only,
-so it runs where no producer's stack is installed: ``python -m neurobox check <folder>``.
-neurofaune re-exports it as ``neurofaune.results``, where it lived until 2026-11.
+Everything here is Lumière's: ``import neurobox`` is ``import lumiere``, and ``neurobox.spec``,
+``neurobox.gallery`` and the rest are the same modules as ``lumiere.spec``, ``lumiere.gallery``.
+New code imports ``lumiere``; this forwarder goes once every tool has moved (renamed 2026-11-10).
 """
-from .check import Report, check, check_analysis, find_analyses, read_table
-from .spec import SPEC, SPEC_VERSION, STANDARD_TERMS
-from .write import (NonConformingResults, columns_for, provenance,
-                    write_analysis, write_columns)
+from __future__ import annotations
 
-__all__ = ["SPEC", "SPEC_VERSION", "STANDARD_TERMS", "Report", "check", "check_analysis",
-           "find_analyses", "read_table", "NonConformingResults", "columns_for", "provenance",
-           "write_analysis", "write_columns"]
+import importlib
+import sys
+
+from lumiere import *  # noqa: F401,F403
+from lumiere import __all__  # noqa: F401
+
+_SUBMODULES = ("_schema", "check", "spec", "write", "gallery", "gallery.digest", "gallery.links")
+for _name in _SUBMODULES:
+    _module = importlib.import_module(f"lumiere.{_name}")
+    sys.modules[f"{__name__}.{_name}"] = _module
+    if "." not in _name:
+        globals()[_name] = _module

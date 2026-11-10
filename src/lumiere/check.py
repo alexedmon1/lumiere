@@ -147,7 +147,7 @@ def _rules_0_2(analysis: dict, rep: Report) -> None:
         canon, exact = canonical_measure(m, vocab)
         if canon is None:
             rep.warnings.append(f"{ANALYSIS_JSON}: measure {m!r} is not in the measure vocabulary "
-                                "(neurobox/vocab/measures.json, in neurobox-dev) -- add it there")
+                                "(lumiere/vocab/measures.json, in Lumière) -- add it there")
         elif not exact:
             rep.errors.append(f"{ANALYSIS_JSON}: measure {m!r} is written {canon!r} in the vocabulary")
         elif not own & set(entry_modalities(vocab[canon])):
@@ -224,7 +224,7 @@ def _rules_0_4(analysis: dict, rep: Report) -> None:
         own = set(analysis.get("modalities") or []) if modality == "multimodal" else {modality}
         if domain not in vocab:
             rep.warnings.append(f"{ANALYSIS_JSON}: domain {domain!r} is not in the domain vocabulary "
-                                "(neurobox/vocab/domains.json) -- add it there")
+                                "(lumiere/vocab/domains.json) -- add it there")
         elif not own & set(entry_modalities(vocab[domain])):
             rep.warnings.append(f"{ANALYSIS_JSON}: domain {domain!r} is for "
                                 f"{'/'.join(entry_modalities(vocab[domain]))}, in a {modality} analysis")

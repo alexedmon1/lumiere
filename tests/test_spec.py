@@ -12,7 +12,7 @@ import sys
 import pandas as pd
 import pytest
 
-from neurobox import (
+from lumiere import (
     SPEC_VERSION,
     STANDARD_TERMS,
     NonConformingResults,
@@ -24,7 +24,7 @@ from neurobox import (
     write_analysis,
     write_columns,
 )
-from neurobox.__main__ import main as cli
+from lumiere.__main__ import main as cli
 
 COLUMNS = {
     "measure": {"Description": "measure", "Standard": "measure"},
@@ -72,7 +72,7 @@ def _errors(folder):
 
 
 def test_package_needs_only_the_standard_library():
-    code = ("import sys, neurobox, neurobox.__main__; "
+    code = ("import sys, lumiere, lumiere.__main__; "
             "heavy = {'numpy', 'pandas', 'nibabel', 'scipy', 'nipype', 'neurofaune'} & set(sys.modules); "
             "print(sorted(heavy))")
     out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True)
@@ -373,7 +373,7 @@ def test_0_2_a_table_names_only_listed_measures(folder):
 
 
 def test_analysis_id_helper():
-    from neurobox.spec import analysis_id, id_problem
+    from lumiere.spec import analysis_id, id_problem
 
     got = analysis_id("func", "voxelwise", "H1j ReHo", "p60 to p90")
     assert got == "func/voxelwise/h1j_reho/p60_to_p90"
@@ -381,7 +381,7 @@ def test_analysis_id_helper():
 
 
 def test_the_measure_vocabulary_is_packaged_and_consistent():
-    from neurobox.spec import MODALITIES, canonical_measure, measure_vocabulary
+    from lumiere.spec import MODALITIES, canonical_measure, measure_vocabulary
 
     vocab = measure_vocabulary()
     assert {"FA", "MK", "FICVF", "T2", "MWF", "ReHo", "fALFF", "logJ_local", "Cr+PCr"} <= set(vocab)
@@ -395,7 +395,7 @@ def test_the_measure_vocabulary_is_packaged_and_consistent():
 
 def _run(root, run_id, contrasts=("A>B",), measures=("FA", "MD"), **over):
     """One run of dwi/roi/demo under ``root``, with the given contrasts on the given measures."""
-    from neurobox.spec import run_folder
+    from lumiere.spec import run_folder
 
     f = run_folder(root, "dwi/roi/demo", run_id)
     f.mkdir(parents=True)
@@ -467,7 +467,7 @@ def test_runs_agree_on_modality_and_have_distinct_ids(tmp_path):
 def test_the_writer_names_a_run_and_checks_its_siblings(tmp_path):
     _run(tmp_path, "2026-10-05")
     f = _run(tmp_path, "2026-10-08")
-    from neurobox.check import check_analysis
+    from lumiere.check import check_analysis
 
     assert check_analysis(f).ok                 # alone it conforms; beside its sibling it does not
     a = json.loads((f / "analysis.json").read_text())

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/alexedmon1/neurobox-dev/src/neurobox/schemas/provenance.schema.json",
+  "$id": "https://github.com/alexedmon1/lumiere/src/lumiere/schemas/provenance.schema.json",
   "title": "neurofaune.results provenance.json",
   "type": "object",
   "required": ["spec", "spec_version", "generated_by", "run"],

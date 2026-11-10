@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/alexedmon1/neurobox-dev/src/neurobox/schemas/analysis.schema.json",
+  "$id": "https://github.com/alexedmon1/lumiere/src/lumiere/schemas/analysis.schema.json",
   "title": "neurofaune.results analysis.json",
   "type": "object",
   "required": ["spec", "spec_version", "id", "title", "description", "analysis_type", "role",

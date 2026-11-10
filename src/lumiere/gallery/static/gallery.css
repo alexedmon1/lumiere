@@ -1327,7 +1327,7 @@ main {
 }
 .search-sub { color: var(--text-muted); font-size: 12px; margin-left: 6px; }
 
-/* ── neurobox additions: what the results specification adds to lightbox's page ── */
+/* ── Lumière's additions: what the results specification adds to lightbox's page ── */
 #gallery-title a { color: inherit; text-decoration: none; }
 .muted { color: var(--text-muted); }
 .yes { color: #4CAF50; }

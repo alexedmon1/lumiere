@@ -1,4 +1,4 @@
-/* neurobox study gallery: renders window.GALLERY (built by neurobox.gallery.build).
+/* Lumière, a study's gallery: renders window.GALLERY (built by lumiere.gallery.build).
 
    source-lightbox's front end (layout, navigation, tabs, viewer, grouped tables, search),
    ported onto the results specification. Where lightbox guessed from file names and
@@ -1192,8 +1192,8 @@
   // dashboard) may not: there the toggle still works, for the visit.
   function stored(value) {
     try {
-      if (value === undefined) return window.localStorage.getItem("neurobox-theme");
-      window.localStorage.setItem("neurobox-theme", value);
+      if (value === undefined) return window.localStorage.getItem("lumiere-theme");
+      window.localStorage.setItem("lumiere-theme", value);
     } catch (e) { /* no storage here */ }
     return null;
   }

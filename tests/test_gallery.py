@@ -1,11 +1,11 @@
-"""The study gallery shell (neurobox.gallery): one static folder from a study's analysis folders."""
+"""The study gallery shell (lumiere.gallery): one static folder from a study's analysis folders."""
 import json
 import re
 
 import pandas as pd
 import pytest
 
-from neurobox import gallery, provenance, write_analysis, write_columns
+from lumiere import gallery, provenance, write_analysis, write_columns
 
 COLUMNS = {
     "measure": {"Description": "measure", "Standard": "measure"},
@@ -133,11 +133,33 @@ def test_the_gallery_never_replaces_the_study(study):
 
 
 def test_cli_builds_from_a_json_settings_file(study, capsys):
-    from neurobox.__main__ import main
+    from lumiere.__main__ import main
 
     (study / "gallery.json").write_text(json.dumps(SETTINGS))
     assert main(["gallery", str(study)]) == 0
     assert capsys.readouterr().out.strip().endswith("index.html")
+
+
+def test_a_gallery_built_under_the_old_name_is_still_rebuilt(study):
+    """Galleries built before 2026-11-10 carry .neurobox-gallery; they are Lumière's too."""
+    old = study / "gallery"
+    old.mkdir()
+    (old / "index.html").write_text("built before the rename")
+    (old / ".neurobox-gallery").write_text("built")
+    gallery.build(study, SETTINGS)
+    assert (old / ".lumiere-gallery").is_file() and not (old / ".neurobox-gallery").exists()
+
+
+def test_the_old_name_forwards_to_lumiere():
+    import neurobox.gallery
+    from neurobox.spec import analysis_id
+
+    import lumiere
+    import lumiere.spec
+    import neurobox
+
+    assert neurobox.gallery is lumiere.gallery and analysis_id is lumiere.spec.analysis_id
+    assert neurobox.write_analysis is lumiere.write_analysis
 
 
 def test_a_folder_the_shell_did_not_build_is_never_replaced(study):
@@ -226,7 +248,7 @@ def test_findings_that_cite_an_analysis_and_its_code_against_the_pin(tmp_path):
 
 
 def test_code_state_reads_releases_describes_and_commits():
-    from neurobox.gallery.links import code_state
+    from lumiere.gallery.links import code_state
 
     def state(version, ref, commit=None):
         gb = {"Name": "tool", "Version": version, **({"CommitID": commit} if commit else {})}
@@ -245,7 +267,7 @@ def test_code_state_reads_releases_describes_and_commits():
 
 def test_pins_are_read_without_a_toml_reader_too():
     """Python 3.10 has no tomllib; the [packages] table is read directly, to the same result."""
-    from neurobox.gallery.links import _packages_310
+    from lumiere.gallery.links import _packages_310
 
     text = ('[study]\nname = "s"  # the study\n[packages]\n'
             'source-analytics = "git+https://x/source-analytics.git@v0.8.2"\n'
