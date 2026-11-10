@@ -5,6 +5,9 @@ neurobox-dev (a working name) on 2026-11-03.
 
 ## Gallery shell — 2026-11-10
 
+- **The repository is `lumiere`** (github.com/alexedmon1/lumiere; the old address redirects). The README says what
+  Lumière is, what it needs, how to build, read and check a gallery, with its banner (`docs/brand/`). The Python
+  names (`neurobox-dev`, `neurobox`) are unchanged for now.
 - **Lumière:** the gallery is named Lumière (light, in French, beside Esprit and Duet). Its sidebar starts
   with the wordmark LUMIÈRE and its mark, a sparkle of stars in gold (#b45309; dark #fbbf24); the tab reads
   "Lumière - <study>" and shows the mark, drawn in the page, so the gallery still loads nothing from elsewhere.

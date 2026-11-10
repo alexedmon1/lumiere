@@ -1,7 +1,7 @@
 [project]
 name = "neurobox-dev"
 version = "0.4.2"
-description = "One results schema, its checker and (soon) the study gallery shell, shared by neurofaune, neurovrai, source-analytics and source-localization"
+description = "Lumière: a study's results as one static page, and the results specification and checker that every analysis tool writes to"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
