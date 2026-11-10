@@ -1374,3 +1374,7 @@ main {
 /* :where() keeps this at the weight of a bare `a`, so the specific rules above still win. */
 :where(#page) a { color: var(--accent-color); }
 :where(#page) a:hover { color: var(--accent-hover); }
+
+/* a network's or cluster's size, and the direction of its edges, in the significance summary */
+.sig-summary .extent { font-weight: 600; }
+.sig-summary .arrow.mixed { color: var(--text-secondary); letter-spacing: -.1em; }

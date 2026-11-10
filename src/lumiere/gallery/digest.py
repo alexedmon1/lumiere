@@ -106,6 +106,29 @@ def _significant(t: _Table, row: dict, analysis: dict) -> bool:
     return p is not None and p < alpha
 
 
+#: A row's extent, by the term that gives it, and the word for its unit.
+EXTENT_TERMS = (("n_edges", "edge"), ("n_voxels", "voxel"), ("volume_mm3", "mm³"))
+#: observed_direction words read as up, down or mixed (a network's edges going both ways).
+DIRECTION_WORDS = {"increase": "up", "higher": "up", "up": "up", "positive": "up",
+                   "decrease": "down", "lower": "down", "down": "down", "negative": "down",
+                   "mixed": "mixed", "both": "mixed"}
+
+
+def _extent(t: Any, row: dict) -> dict:
+    """How big a significant element is (a component's edges, a cluster's voxels) and which way it
+    went, where its table says: what a cluster or network row shows in place of an effect size."""
+    out: dict = {}
+    for term, unit in EXTENT_TERMS:
+        size = _float(t.get(row, term))
+        if size is not None:
+            out["extent"] = {"value": size, "unit": unit}
+            break
+    word = (t.get(row, "observed_direction") or "").strip().lower()
+    if word in DIRECTION_WORDS:
+        out["direction"] = DIRECTION_WORDS[word]
+    return out
+
+
 def digest(folder: Path, analysis: dict) -> dict | None:
     """The analysis's significance summary for the gallery page, or None when its tables
     declare no contrast to summarize (no ``contrast`` column and no declared ``contrasts``)."""
@@ -162,6 +185,7 @@ def digest(folder: Path, analysis: dict) -> dict | None:
                 "element": t.get(row, "element") if t.level else None,
                 "effect": effect, "effect_measure": effect_measure, "p": p,
                 "signed": (effect_measure or "").lower() not in UNSIGNED,
+                **_extent(t, row),
             })
 
     contrasts = []

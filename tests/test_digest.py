@@ -204,3 +204,32 @@ def test_the_gallery_carries_the_summary_and_survives_a_broken_one(tmp_path, mon
     with pytest.warns(UserWarning, match="no significance summary: bad table"):
         m = _manifest(gallery.build(tmp_path / "study", settings))
     assert next(iter(m["analyses"].values()))["digest"] is None
+
+
+def test_a_network_component_says_its_size_and_direction(tmp_path):
+    """An NBS component has no effect size: the summary shows its edges and which way they went."""
+    f = tmp_path / "an"
+    f.mkdir()
+    cols = {
+        "hypothesis": {"Description": "contrast id", "Standard": "contrast"},
+        "band": {"Description": "band", "Standard": "facet", "FacetName": "band"},
+        "measure": {"Description": "measure", "Standard": "measure"},
+        "component_id": {"Description": "component", "Standard": "element", "ElementName": "component"},
+        "n_edges": {"Description": "its edges", "Standard": "n_edges"},
+        "direction": {"Description": "which way", "Standard": "observed_direction"},
+        "component_p": {"Description": "FWE p", "Standard": "p_value", "PKind": "fwe"},
+        "significant": {"Description": "p < 0.05", "Standard": "significant", "Alpha": 0.05},
+    }
+    pd.DataFrame([
+        {"hypothesis": "disease", "band": "Beta", "measure": "coherence", "component_id": 1, "n_edges": 27,
+         "direction": "mixed", "component_p": 0.049, "significant": True},
+        {"hypothesis": "disease", "band": "Alpha", "measure": "aec", "component_id": 1, "n_edges": 3,
+         "direction": "increase", "component_p": 0.6, "significant": False},
+    ]).to_csv(f / "nbs.csv", index=False)
+    write_columns(f / "nbs.csv", cols)
+    tables = [{"path": "nbs.csv", "role": "elements", "rows": "a component", "description": "nbs"}]
+    d = digest(f, {"contrasts": CONTRASTS, "tables": tables})
+    (test,) = next(c for c in d["contrasts"] if c["id"] == "disease")["tests"]
+    (row,) = test["levels"][0]["rows"]
+    assert row["extent"] == {"value": 27.0, "unit": "edge"} and row["direction"] == "mixed"
+    assert row["effect"] is None and d["counts"] == {"component": 1}

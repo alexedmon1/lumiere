@@ -396,6 +396,7 @@ A reader shows a run whose status is not `completed` as such, never silently.
 | `n_significant` | elements (voxels, edges) significant under the correction [`Units`, `PKind`, `Alpha`] |
 | `frac_significant` | the same as a fraction of the mask / network |
 | `n_voxels`, `volume_mm3` | a cluster's extent |
+| `n_edges` | a network component's extent: its edges (from 0.4.3; the NBS) |
 | `peak_xyz_mm` | [`Space`*] peak coordinate, `"x y z"` |
 | `peak_region` | atlas region at the peak |
 | `regions` | every region covered, `"name:count; name:count"` |

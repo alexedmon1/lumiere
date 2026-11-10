@@ -6,7 +6,7 @@ neurofaune's imaging dependencies are not installed (neurovrai, a reader's lapto
 from __future__ import annotations
 
 SPEC = "neurofaune.results"
-SPEC_VERSION = "0.4.2"
+SPEC_VERSION = "0.4.3"
 #: The (major, minor) versions this package reads: every 0.x up to its own. A 0.1 folder
 #: is checked by 0.1's rules; the rules added in 0.2 apply to folders that declare 0.2 or
 #: later, and so on: each rule applies to folders declaring the version that added it or later.
@@ -74,7 +74,7 @@ STANDARD_TERMS: dict[str, tuple[str, ...]] = {
     "effect_size": ("EffectMeasure",), "effect_ci_low": (), "effect_ci_high": (),
     "effect_selected": (), "estimate": (), "mean_a": (), "mean_b": (), "mean": (),
     "stat": ("StatName",), "p_value": ("PKind",), "significant": (),
-    "n_significant": (), "frac_significant": (), "n_voxels": (), "volume_mm3": (),
+    "n_significant": (), "frac_significant": (), "n_voxels": (), "volume_mm3": (), "n_edges": (),
     "peak_xyz_mm": ("Space",), "peak_region": (), "regions": (), "crosses_midline": (),
     "subgroup_effect": ("EffectMeasure", "Subgroup"), "subgroup_n": ("Subgroup",),
     # 0.3: what the design could have detected (RESULTS_SPEC.md §5.1)
@@ -95,7 +95,7 @@ TERMS_SINCE: dict[str, tuple[int, int]] = {
     **dict.fromkeys(("se", "mde", "mde_percent", "mde_note"), (0, 3)),
     **dict.fromkeys(("correction_family", "p_uncorrected", "effect_measure", "margin", "equivalent",
                      "posterior_median", "hdi_low", "hdi_high", "p_direction", "p_rope", "bf10",
-                     "sesoi", "reading", "subject", "group", "session", "qc_flag"), (0, 4)),
+                     "sesoi", "reading", "subject", "group", "session", "qc_flag", "n_edges"), (0, 4)),
 }
 #: Every reason an ``mde`` is not given starts with this (``mde_note``).
 NOT_COMPUTED = "not computed: "

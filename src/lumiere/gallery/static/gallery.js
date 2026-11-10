@@ -630,8 +630,22 @@
       esc((r.signed ? Math.abs(r.effect) : r.effect).toFixed(2)) + "</span>";
     return arrow + v + fmtP(r.p, kind);
   }
+  // A cluster or network row: its size and which way it went, in place of an effect size.
+  var DIRECTION_HTML = {
+    up: '<span class="arrow up" title="higher in the first-listed group">▲</span>',
+    down: '<span class="arrow down" title="lower in the first-listed group">▼</span>',
+    mixed: '<span class="arrow mixed" title="its edges go both ways">▲▼</span>'
+  };
+  function extentHtml(r) {
+    if (!r.extent) return "";
+    var n = r.extent.value, unit = r.extent.unit;
+    var count = Number.isInteger(n) ? String(n) : n.toFixed(1);
+    var word = unit === "mm³" ? unit : (n === 1 ? unit : unit + "s");
+    return '<span class="extent">' + esc(count + " " + word) + "</span>" +
+      (r.direction ? " " + DIRECTION_HTML[r.direction] : "");
+  }
   function testLabel(t) {
-    var m = t.measure ? String(t.measure).replace(/_/g, " ") : "";
+    var m = t.measure ? formatName(t.measure) : "";
     return (t.facets || []).concat(m ? [m] : []).join(" · ");
   }
   function digestHtml(a, d) {
@@ -687,7 +701,10 @@
               html += ' <span class="sig-facet">overall</span> ' + effectHtml(l.rows[0], kind);
               return;
             }
-            var named = l.rows.map(function (r) { return esc(r.element) + " " + effectHtml(r, kind); });
+            // a row with an extent (a network's edges, a cluster's voxels) says its size, not its number
+            var named = l.rows.map(function (r) {
+              return r.extent ? extentHtml(r) + " " + effectHtml(r, kind) : esc(r.element) + " " + effectHtml(r, kind);
+            });
             var more = l.n - l.rows.length;
             html += '<span class="sig-region"><span class="sig-pairs">' + esc(l.n) + " " + esc(levelTitle(d, l.level, l.n)) +
               "</span> " + named.join(", ") + (more > 0 ? " (+" + more + " more)" : "") + "</span>";

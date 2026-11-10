@@ -16,7 +16,7 @@
                             "n_b", "df", "effect_size", "effect_ci_low", "effect_ci_high",
                             "effect_selected", "estimate", "mean_a", "mean_b", "mean", "stat",
                             "p_value", "significant", "n_significant", "frac_significant", "n_voxels",
-                            "volume_mm3", "peak_xyz_mm", "peak_region", "regions", "crosses_midline",
+                            "volume_mm3", "n_edges", "peak_xyz_mm", "peak_region", "regions", "crosses_midline",
                             "subgroup_effect", "subgroup_n", "se", "mde", "mde_percent", "mde_note",
                             "correction_family", "p_uncorrected", "effect_measure", "margin",
                             "equivalent", "posterior_median", "hdi_low", "hdi_high", "p_direction",
