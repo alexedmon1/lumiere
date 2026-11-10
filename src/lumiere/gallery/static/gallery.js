@@ -41,7 +41,12 @@
     trajectory: "Trajectories", summary: "Summaries", diagnostic: "Diagnostics", other: "Other figures",
   };
 
+  // Names that read as one word, before their parts are capitalized: imag_coherence is ImCoh.
+  var WHOLE_NAMES = { imag_coherence: "ImCoh", partial_corr: "Partial correlation", net_te: "Net TE",
+    net_transfer_entropy: "Net TE", transfer_entropy: "TE" };
   function formatName(slug) {
+    var whole = WHOLE_NAMES[String(slug == null ? "" : slug).toLowerCase()];
+    if (whole) return whole;
     return String(slug == null ? "" : slug).replace(/_/g, " ").split(" ").map(function (w) {
       var l = w.toLowerCase();
       if (ACRONYMS[l]) return ACRONYMS[l];
@@ -644,9 +649,12 @@
     return '<span class="extent">' + esc(count + " " + word) + "</span>" +
       (r.direction ? " " + DIRECTION_HTML[r.direction] : "");
   }
+  // a region or electrode as people write it: Amygdalar_Complex_L reads Amygdalar Complex L
+  function elementName(e) { return String(e == null ? "" : e).replace(/_/g, " "); }
   function testLabel(t) {
     var m = t.measure ? formatName(t.measure) : "";
-    return (t.facets || []).concat(m ? [m] : []).join(" · ");
+    // facets (a band, a connectivity type) named as the figures name them: Coherence, AEC, Low Gamma
+    return (t.facets || []).map(formatName).concat(m ? [m] : []).join(" · ");
   }
   function digestHtml(a, d) {
     var kind = d.p_kind, html = '<div class="sig-summary">';
@@ -710,7 +718,7 @@
             }
             // a row with an extent (a network's edges, a cluster's voxels) says its size, not its number
             var named = l.rows.map(function (r) {
-              return r.extent ? extentHtml(r) + " " + effectHtml(r, kind) : esc(r.element) + " " + effectHtml(r, kind);
+              return r.extent ? extentHtml(r) + " " + effectHtml(r, kind) : esc(elementName(r.element)) + " " + effectHtml(r, kind);
             });
             var more = l.n - l.rows.length;
             html += '<span class="sig-region"><span class="sig-pairs">' + esc(l.n) + " " + esc(levelTitle(d, l.level, l.n)) +

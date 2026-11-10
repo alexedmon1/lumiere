@@ -13,7 +13,8 @@ neurobox-dev (a working name) on 2026-11-03.
 - **A cluster or network says its size:** in the significance summary, a row with an extent (`n_edges`,
   `n_voxels`, `volume_mm3`) shows it, with its `observed_direction` (▲ up, ▼ down, ▲▼ mixed), in place of
   its element's number: "27 edges ▲▼ p=.049" rather than "1 p=.049".
-- **Measures by name:** the summary names a measure as the figures do (AEC, dwPLI, ImCoh), not by its id.
+- **Names as the figures write them:** the summary names a measure and a facet as the figures do (AEC, dwPLI,
+  ImCoh, Coherence, Low Gamma), and a region without underscores (Amygdalar Complex L).
 - **The Python names are Lumière's:** install `lumiere` (from github.com/alexedmon1/lumiere), import `lumiere`,
   run `lumiere check` / `lumiere gallery` (or `python -m lumiere`). `neurobox` forwards to it (`import neurobox`,
   `neurobox.gallery`, the `neurobox` command) until every tool has moved. A gallery's marker is
