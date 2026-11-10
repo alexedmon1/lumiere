@@ -169,7 +169,7 @@
 
   /* ── Init ── */
   document.addEventListener("DOMContentLoaded", function () {
-    document.title = M.title || "Gallery";
+    document.title = "Lumière - " + (M.title || "Gallery");
     buildSidebar();
     initThemeToggle();
     initSearch();

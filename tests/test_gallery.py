@@ -95,6 +95,12 @@ def test_a_gallery_is_built_from_the_analysis_folders(study):
     assert (study / "gallery" / "assets" / "gallery.js").is_file()
 
 
+def test_the_page_carries_lumieres_name_and_mark(study):
+    page = gallery.build(study, SETTINGS).read_text(encoding="utf-8")
+    assert "<title>Lumière - " in page and '<span class="word"><b>L</b>UMIÈRE</span>' in page
+    assert '<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,' in page  # loads nothing
+
+
 def test_paths_that_do_not_exist_stay_text(study, tmp_path):
     _analysis_folder(study / "results", "anat/roi/thick", "r1", modality="anat", report=False)
     m = _manifest(gallery.build(study, SETTINGS))

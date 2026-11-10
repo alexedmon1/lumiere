@@ -76,6 +76,29 @@ body {
   border-bottom: 1px solid var(--border-color);
 }
 
+/* Lumière's wordmark: the suite's light, spaced capitals (Esprit, Duet), led by its mark, a
+   sparkle of stars in gold. */
+:root, [data-theme="light"] { --mark: #b45309; }
+[data-theme="dark"] { --mark: #fbbf24; }
+.sidebar-header .brand {
+  align-items: center;
+  color: var(--text-primary);
+  display: flex;
+  gap: 9px;
+  margin-bottom: 12px;
+  text-decoration: none;
+}
+.sidebar-header .brand svg { color: var(--mark); flex: none; height: 26px; width: 31px; }
+[data-theme="dark"] .sidebar-header .brand svg { filter: drop-shadow(0 0 2px #fbbf2499); }
+.sidebar-header .brand .word {
+  font-family: "Segoe UI", "Helvetica Neue", system-ui, sans-serif;
+  font-size: 17px;
+  font-weight: 300;
+  letter-spacing: .42em;
+  line-height: 1;
+}
+.sidebar-header .brand .word b { color: var(--mark); font-weight: 300; }
+
 .sidebar-header h1 {
   font-size: 16px;
   font-weight: 600;

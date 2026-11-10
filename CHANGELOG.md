@@ -5,6 +5,9 @@ neurobox-dev (a working name) on 2026-11-03.
 
 ## Gallery shell — 2026-11-10
 
+- **Lumière:** the gallery is named Lumière (light, in French, beside Esprit and Duet). Its sidebar starts
+  with the wordmark LUMIÈRE and its mark, a sparkle of stars in gold (#b45309; dark #fbbf24); the tab reads
+  "Lumière - <study>" and shows the mark, drawn in the page, so the gallery still loads nothing from elsewhere.
 - **Sidebar:** no count beside a section of several analyses (Connectivity showed "3"); it was
   unexplained and the old gallery had none. The Figures and Tables tabs keep their counts.
 
