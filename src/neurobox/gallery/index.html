@@ -1,10 +1,19 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lumière - $title</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 30'%3E%3Cstyle%3Esvg{color:%23b45309}@media (prefers-color-scheme: dark){svg{color:%23fbbf24}}%3C/style%3E%3Cpath d='M18 15 L18 1.8 M18 15 L18 28.4 M18 15 L4.2 15.4 M18 15 L31.8 14.6 M18 15 L13.3 10.4 M18 15 L22.6 10.2 M18 15 L22.8 19.6 M18 15 L13.2 19.8' fill='none' stroke='currentColor' stroke-width='1.4' stroke-opacity='.6' stroke-linecap='round'/%3E%3Cg fill='currentColor'%3E%3Ccircle cx='18' cy='15' r='2.9'/%3E%3Ccircle cx='18' cy='1.8' r='1.5'/%3E%3Ccircle cx='18' cy='28.4' r='1.1'/%3E%3Ccircle cx='4.2' cy='15.4' r='1.2'/%3E%3Ccircle cx='31.8' cy='14.6' r='1.4'/%3E%3Ccircle cx='13.3' cy='10.4' r='.75'/%3E%3Ccircle cx='22.6' cy='10.2' r='.9'/%3E%3Ccircle cx='22.8' cy='19.6' r='.75'/%3E%3Ccircle cx='13.2' cy='19.8' r='.8'/%3E%3C/g%3E%3C/svg%3E">
+<script>
+  /* Light or dark before the page is drawn: the reader's choice, else the computer's setting. */
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem("neurobox-theme"); } catch (e) {}
+    document.documentElement.setAttribute("data-theme", t === "light" || t === "dark" ? t
+      : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+  })();
+</script>
 <link rel="stylesheet" href="assets/gallery.css?v=$assets_v">
 <link rel="stylesheet" href="assets/vendor/glightbox.min.css">
 <script>window.GALLERY = $manifest;</script>

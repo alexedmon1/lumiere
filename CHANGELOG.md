@@ -16,6 +16,8 @@ neurobox-dev (a working name) on 2026-11-03.
 - **The same background as Esprit and Duet:** the page and its cards are the browser's own background
   (`Canvas`, in the theme the page is in), and panels are Canvas mixed a little toward the text colour, so in
   any browser Lumière's dark (and light) background is the one Esprit and Duet show.
+- **Light or dark as on Esprit and Duet:** the page follows the computer's setting until the reader presses
+  the button, then keeps that choice (where the page may store it); set in the head, before the page is drawn.
 - **Never a stale stylesheet:** the page addresses `gallery.css` and `gallery.js` by a hash of their content
   (`?v=`), so a browser cannot pair a rebuilt page with styles it kept from an earlier build.
 - **Sidebar:** no count beside a section of several analyses (Connectivity showed "3"); it was

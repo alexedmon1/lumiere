@@ -1197,9 +1197,17 @@
     } catch (e) { /* no storage here */ }
     return null;
   }
+  // As on Esprit and Duet: the reader's choice, else the computer's setting, followed as it changes.
+  // The page's head sets the same before it is drawn (index.html), so it never flashes the other one.
   function initThemeToggle() {
-    var saved = stored();                // dark unless the reader chose light
-    document.documentElement.setAttribute("data-theme", saved === "light" ? "light" : "dark");
+    var system = window.matchMedia("(prefers-color-scheme: dark)");
+    function apply() {
+      var saved = stored();
+      document.documentElement.setAttribute("data-theme",
+        saved === "light" || saved === "dark" ? saved : (system.matches ? "dark" : "light"));
+    }
+    apply();
+    system.addEventListener("change", apply);
     document.getElementById("theme-toggle").addEventListener("click", function () {
       var next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
       document.documentElement.setAttribute("data-theme", next);
