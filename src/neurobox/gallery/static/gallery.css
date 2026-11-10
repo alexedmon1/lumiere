@@ -2,45 +2,45 @@
 :root,
 [data-theme="light"] {
   --bg-primary: #ffffff;
-  --bg-secondary: #f5f5f7;
-  --bg-sidebar: #f0f0f2;
+  --bg-secondary: #f6f6f7;
+  --bg-sidebar: transparent;
   --bg-card: #ffffff;
-  --bg-hover: #e8e8ea;
-  --bg-active: #d4d4f7;
+  --bg-hover: #8882;
+  --bg-active: #2563eb;
   --text-primary: #1d1d1f;
   --text-secondary: #6e6e73;
   --text-muted: #999;
-  --border-color: #d2d2d7;
-  --accent-color: #5856d6;
-  --accent-hover: #4744c4;
+  --border-color: #d6d6da;
+  --accent-color: #2563eb;
+  --accent-hover: #1d4ed8;
   --highlight-bg: rgba(255, 214, 0, 0.15);
   --highlight-border: #ffd600;
   --shadow: 0 1px 3px rgba(0,0,0,0.08);
   --thumb-border: 1px solid #e0e0e0;
-  --table-stripe: #f9f9fb;
-  --table-header-bg: #f0f0f2;
+  --table-stripe: #f9f9fa;
+  --table-header-bg: #f1f1f3;
   --scrollbar-thumb: #c0c0c0;
 }
 
 [data-theme="dark"] {
-  --bg-primary: #1a1a2e;
-  --bg-secondary: #16213e;
-  --bg-sidebar: #0f0f23;
-  --bg-card: #1e1e3a;
-  --bg-hover: #2a2a4a;
-  --bg-active: #3a3a6a;
+  --bg-primary: #121212;
+  --bg-secondary: #1b1b1f;
+  --bg-sidebar: transparent;
+  --bg-card: #18181b;
+  --bg-hover: #8882;
+  --bg-active: #3b5bdb;
   --text-primary: #e0e0e8;
   --text-secondary: #9898a8;
   --text-muted: #666;
-  --border-color: #2d2d4d;
-  --accent-color: #7c7cf0;
-  --accent-hover: #9090ff;
+  --border-color: #34343a;
+  --accent-color: #8ab4ff;
+  --accent-hover: #a9c7ff;
   --highlight-bg: rgba(255, 214, 0, 0.08);
   --highlight-border: #b39700;
   --shadow: 0 1px 3px rgba(0,0,0,0.3);
   --thumb-border: 1px solid #333;
-  --table-stripe: #1a1a35;
-  --table-header-bg: #22224a;
+  --table-stripe: #17171a;
+  --table-header-bg: #202024;
   --scrollbar-thumb: #444;
 }
 
@@ -48,63 +48,47 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font: 15px/1.5 system-ui, "Segoe UI", sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
-  display: flex;
   min-height: 100vh;
-  line-height: 1.5;
 }
+:root { --head: 62px; }
+html { scroll-padding-top: calc(var(--head) + 14px); }
+
+/* === Top bar and sections down the left, as on Duet's record page and Esprit === */
+#topbar { background: var(--bg-primary); border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 20; }
+#topbar .bar { align-items: center; display: flex; gap: 16px; height: var(--head); margin: 0 auto; max-width: 1320px; padding: 0 20px; }
+#topbar .brand { align-items: center; color: var(--text-primary); display: inline-flex; flex: none; gap: 10px; text-decoration: none; }
+#topbar .brand svg { color: var(--mark); flex: none; height: 30px; width: 36px; }
+[data-theme="dark"] #topbar .brand svg { filter: drop-shadow(0 0 2px #fbbf2499); }
+#topbar .brand .word { font-family: "Segoe UI", "Helvetica Neue", system-ui, sans-serif; font-size: 21px; font-weight: 300;
+  letter-spacing: .42em; line-height: 1; margin-right: -.42em; }
+#topbar .brand .word b { color: var(--mark); font-weight: 300; }
+#topbar .name { border-left: 1px solid var(--border-color); color: var(--text-secondary); font-size: 14px; min-width: 0;
+  overflow: hidden; padding-left: 16px; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+#topbar .name:hover { color: var(--text-primary); }
+#topbar #search-input { flex: none; margin-left: auto; width: 220px; }
+#topbar .built { color: var(--text-muted); font-size: 11px; white-space: nowrap; }
+.layout { display: grid; gap: 28px; grid-template-columns: 270px minmax(0, 1fr); margin: 0 auto; max-width: 1320px; padding: 0 20px; }
 
 /* === Sidebar === */
 #sidebar {
-  width: 260px;
-  min-width: 260px;
-  background: var(--bg-sidebar);
-  border-right: 1px solid var(--border-color);
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  position: sticky;
-  top: 0;
+  align-self: start;
+  max-height: calc(100vh - var(--head));
   overflow-y: auto;
-  z-index: 10;
+  padding: 14px 4px 30px 0;
+  position: sticky;
+  scrollbar-width: thin;
+  top: var(--head);
 }
 
-.sidebar-header {
-  padding: 16px;
-  border-bottom: 1px solid var(--border-color);
-}
 
 /* Lumière's wordmark: the suite's light, spaced capitals (Esprit, Duet), led by its mark, a
    sparkle of stars in gold. */
 :root, [data-theme="light"] { --mark: #b45309; }
 [data-theme="dark"] { --mark: #fbbf24; }
-.sidebar-header .brand {
-  align-items: center;
-  color: var(--text-primary);
-  display: flex;
-  gap: 9px;
-  margin-bottom: 12px;
-  text-decoration: none;
-}
-.sidebar-header .brand svg { color: var(--mark); flex: none; height: 26px; width: 31px; }
-[data-theme="dark"] .sidebar-header .brand svg { filter: drop-shadow(0 0 2px #fbbf2499); }
-.sidebar-header .brand .word {
-  font-family: "Segoe UI", "Helvetica Neue", system-ui, sans-serif;
-  font-size: 17px;
-  font-weight: 300;
-  letter-spacing: .42em;
-  line-height: 1;
-}
-.sidebar-header .brand .word b { color: var(--mark); font-weight: 300; }
 
-.sidebar-header h1 {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 10px;
-  color: var(--text-primary);
-}
 
 .home-link {
   display: inline-block;
@@ -148,22 +132,26 @@ body {
 }
 
 .nav-section-title {
-  padding: 6px 16px;
+  padding: 8px 10px 4px;
+  font-family: "Segoe UI", "Helvetica Neue", system-ui, sans-serif;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-secondary);
+  letter-spacing: .18em;
+  color: var(--mark);
 }
 
 .nav-item {
   display: block;
-  padding: 5px 16px 5px 28px;
-  font-size: 13px;
+  padding: 5px 10px 5px 16px;
+  font-family: "Segoe UI", "Helvetica Neue", system-ui, sans-serif;
+  font-size: 12.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
   color: var(--text-primary);
   text-decoration: none;
   cursor: pointer;
-  border-radius: 0;
+  border-radius: 5px;
   transition: background 0.15s;
 }
 
@@ -173,7 +161,7 @@ body {
 
 .nav-item.active {
   background: var(--bg-active);
-  font-weight: 600;
+  color: #fff;
 }
 
 .nav-paradigm {
@@ -222,15 +210,9 @@ body {
 .nav-divider {
   height: 1px;
   background: var(--border-color);
-  margin: 8px 16px;
+  margin: 8px 10px;
 }
 
-.sidebar-footer {
-  padding: 12px 16px;
-  border-top: 1px solid var(--border-color);
-  display: flex;
-  justify-content: center;
-}
 
 #theme-toggle {
   background: none;
@@ -249,10 +231,8 @@ body {
 
 /* === Main Content === */
 main {
-  flex: 1;
-  padding: 24px 32px;
   min-width: 0;
-  max-width: 1400px;
+  padding: 18px 0 60px;
 }
 
 #breadcrumb {
@@ -723,12 +703,6 @@ main {
 .pill-panel { display: none; }
 .pill-panel.active { display: block; }
 
-.analysis-sub-header {
-  font-size: 15px;
-  font-weight: 600;
-  margin: 14px 0 0;
-  color: var(--text-primary);
-}
 .analysis-desc {
   font-size: 12px;
   font-weight: 400;
@@ -1137,17 +1111,45 @@ main {
 }
 
 /* === Section Headers === */
-.section-header {
-  font-size: 18px;
-  font-weight: 600;
-  margin: 24px 0 12px;
-  padding-bottom: 8px;
+/* Headings in the suite's manner (Esprit, Duet): a page's title light and large; each subheading
+   in light spaced capitals, led by a small sparkle, Lumière's mark, in its gold. */
+.section-header, .analysis-sub-header {
+  align-items: center;
   border-bottom: 1px solid var(--border-color);
+  display: flex;
+  font-family: "Segoe UI", "Helvetica Neue", system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: .24em;
+  margin: 28px 0 10px;
+  padding-bottom: 4px;
+  text-transform: uppercase;
 }
+.section-header::before, .analysis-sub-header::before {
+  background: var(--mark);
+  content: "";
+  flex: none;
+  height: 13px;
+  margin-right: 10px;
+  width: 22px;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 13'%3E%3Cpath d='M11 6.5 L11 1 M11 6.5 L11 12 M11 6.5 L3.6 6.7 M11 6.5 L18.4 6.3 M11 6.5 L8.7 4.3 M11 6.5 L13.3 4.2 M11 6.5 L13.4 8.8 M11 6.5 L8.6 8.9' stroke='black' stroke-width='.6' stroke-opacity='.55' fill='none' stroke-linecap='round'/%3E%3Cg fill='black'%3E%3Ccircle cx='11' cy='6.5' r='1.9'/%3E%3Ccircle cx='11' cy='1' r='.95'/%3E%3Ccircle cx='11' cy='12' r='.75'/%3E%3Ccircle cx='3.6' cy='6.7' r='.8'/%3E%3Ccircle cx='18.4' cy='6.3' r='.9'/%3E%3Ccircle cx='8.7' cy='4.3' r='.5'/%3E%3Ccircle cx='13.3' cy='4.2' r='.55'/%3E%3Ccircle cx='13.4' cy='8.8' r='.5'/%3E%3Ccircle cx='8.6' cy='8.9' r='.5'/%3E%3C/g%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 13'%3E%3Cpath d='M11 6.5 L11 1 M11 6.5 L11 12 M11 6.5 L3.6 6.7 M11 6.5 L18.4 6.3 M11 6.5 L8.7 4.3 M11 6.5 L13.3 4.2 M11 6.5 L13.4 8.8 M11 6.5 L8.6 8.9' stroke='black' stroke-width='.6' stroke-opacity='.55' fill='none' stroke-linecap='round'/%3E%3Cg fill='black'%3E%3Ccircle cx='11' cy='6.5' r='1.9'/%3E%3Ccircle cx='11' cy='1' r='.95'/%3E%3Ccircle cx='11' cy='12' r='.75'/%3E%3Ccircle cx='3.6' cy='6.7' r='.8'/%3E%3Ccircle cx='18.4' cy='6.3' r='.9'/%3E%3Ccircle cx='8.7' cy='4.3' r='.5'/%3E%3Ccircle cx='13.3' cy='4.2' r='.55'/%3E%3Ccircle cx='13.4' cy='8.8' r='.5'/%3E%3Ccircle cx='8.6' cy='8.9' r='.5'/%3E%3C/g%3E%3C/svg%3E") center / contain no-repeat;
+}
+[data-theme="dark"] .section-header::before, [data-theme="dark"] .analysis-sub-header::before { filter: drop-shadow(0 0 2px #fbbf2488); }
 
 .section-header:first-child {
-  margin-top: 0;
+  border-bottom: 0;
+  display: block;
+  font-size: 24px;
+  font-weight: 300;
+  letter-spacing: .03em;
+  margin: 4px 0 12px;
+  text-transform: none;
 }
+.section-header:first-child::before { display: none; }
+/* an analysis's heading on its section's page is a subheading too, set in the reading case so a long
+   analysis name stays legible */
+.analysis-sub-header { color: var(--text-primary); font-size: 14px; letter-spacing: .04em; margin: 24px 0 8px; text-transform: none; }
 
 /* === Overview === */
 .overview-grid {
@@ -1240,13 +1242,9 @@ main {
 
 /* === Responsive === */
 @media (max-width: 900px) {
-  #sidebar {
-    width: 220px;
-    min-width: 220px;
-  }
-  main {
-    padding: 16px;
-  }
+  .layout { grid-template-columns: 1fr; gap: 0; }
+  #sidebar { position: static; max-height: none; overflow: visible; padding: 10px 0 0; }
+  #topbar .name, #topbar .built { display: none; }
   .figure-grid {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   }
@@ -1256,16 +1254,7 @@ main {
 }
 
 @media (max-width: 600px) {
-  body {
-    flex-direction: column;
-  }
-  #sidebar {
-    width: 100%;
-    min-width: 100%;
-    height: auto;
-    position: static;
-    max-height: 50vh;
-  }
+  #topbar #search-input { width: 140px; }
 }
 
 /* === Scrollbar === */
@@ -1333,7 +1322,6 @@ main {
 
 /* ── neurobox additions: what the results specification adds to lightbox's page ── */
 #gallery-title a { color: inherit; text-decoration: none; }
-.sidebar-footer .built { font-size: 11px; color: var(--text-muted); margin-left: 8px; }
 .muted { color: var(--text-muted); }
 .yes { color: #4CAF50; }
 .tags { margin: 0 0 12px; }

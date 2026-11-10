@@ -42,6 +42,7 @@ relative to the settings file. Standard library only.
 from __future__ import annotations
 
 import fnmatch
+import hashlib
 import html
 import json
 import os
@@ -357,8 +358,12 @@ def build(study: Path, settings: dict | None = None, out: Path | None = None) ->
     }
     shutil.copytree(HERE / "static", dest / "assets")
     data = json.dumps(manifest, default=str).replace("</", "<\\/")
+    # the assets' address changes with their content, so a browser never pairs a new page with an old
+    # stylesheet or script it kept from an earlier build
+    assets_v = hashlib.sha256(b"".join((HERE / "static" / f).read_bytes()
+                                       for f in ("gallery.css", "gallery.js"))).hexdigest()[:10]
     page = string.Template((HERE / "index.html").read_text()).substitute(
-        title=html.escape(manifest["title"]), manifest=data, built=html.escape(built))
+        title=html.escape(manifest["title"]), manifest=data, built=html.escape(built), assets_v=assets_v)
     (dest / "index.html").write_text(page, encoding="utf-8")
     (dest / MARKER).write_text(f"built {built}; rebuilt by neurobox.gallery.build, never edited\n")
     return dest / "index.html"

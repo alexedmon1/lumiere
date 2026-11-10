@@ -8,6 +8,13 @@ neurobox-dev (a working name) on 2026-11-03.
 - **Lumière:** the gallery is named Lumière (light, in French, beside Esprit and Duet). Its sidebar starts
   with the wordmark LUMIÈRE and its mark, a sparkle of stars in gold (#b45309; dark #fbbf24); the tab reads
   "Lumière - <study>" and shows the mark, drawn in the page, so the gallery still loads nothing from elsewhere.
+- **The suite's layout:** a top bar like Duet's record page and Esprit (the mark and LUMIÈRE, the study's name,
+  search, light or dark, when built), the sections down the left beneath it in spaced capitals with the one
+  open in the accent, the page 1320 px wide; Esprit's and Duet's palette (blue accents, neutral backgrounds).
+  A page's title is light and large; each subheading is in light spaced capitals led by a small sparkle in
+  gold, as Duet's and Esprit's headings are led by theirs.
+- **Never a stale stylesheet:** the page addresses `gallery.css` and `gallery.js` by a hash of their content
+  (`?v=`), so a browser cannot pair a rebuilt page with styles it kept from an earlier build.
 - **Sidebar:** no count beside a section of several analyses (Connectivity showed "3"); it was
   unexplained and the old gallery had none. The Figures and Tables tabs keep their counts.
 

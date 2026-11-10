@@ -99,6 +99,9 @@ def test_the_page_carries_lumieres_name_and_mark(study):
     page = gallery.build(study, SETTINGS).read_text(encoding="utf-8")
     assert "<title>Lumière - " in page and '<span class="word"><b>L</b>UMIÈRE</span>' in page
     assert '<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,' in page  # loads nothing
+    # the stylesheet and script are addressed by their content, so no browser keeps a stale copy
+    assert re.search(r'href="assets/gallery.css\?v=[0-9a-f]{10}"', page)
+    assert re.search(r'src="assets/gallery.js\?v=[0-9a-f]{10}"', page)
 
 
 def test_paths_that_do_not_exist_stay_text(study, tmp_path):
