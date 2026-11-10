@@ -218,15 +218,18 @@ html { scroll-padding-top: calc(var(--head) + 14px); }
 }
 
 
+/* the last thing in the top bar, as on Esprit and Duet */
 #theme-toggle {
   background: none;
   border: 1px solid var(--border-color);
   border-radius: 6px;
-  padding: 4px 12px;
+  padding: 4px 9px;
   cursor: pointer;
   color: var(--text-primary);
-  font-size: 16px;
+  font-size: 14px;
+  line-height: 1;
 }
+#theme-toggle:hover { border-color: var(--accent-color); color: var(--accent-color); }
 
 [data-theme="dark"] .theme-icon-dark { display: none; }
 [data-theme="dark"] .theme-icon-light { display: inline; }
