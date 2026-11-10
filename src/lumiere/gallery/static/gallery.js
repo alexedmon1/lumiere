@@ -649,12 +649,21 @@
     return '<span class="extent">' + esc(count + " " + word) + "</span>" +
       (r.direction ? " " + DIRECTION_HTML[r.direction] : "");
   }
+  // A facet value as people write it: a known name (coherence, aec, imag_coherence) or one plain
+  // word is capitalized; anything else keeps its case, underscores read as spaces
+  // (change_control p60_to_p90 reads change control p60 to p90, not Change Control P60 To P90).
+  function facetName(v) {
+    var raw = String(v == null ? "" : v), low = raw.toLowerCase();
+    if (WHOLE_NAMES[low] || ACRONYMS[low]) return formatName(raw);
+    if (/^[a-z]+$/.test(raw)) return formatName(raw);
+    return raw.replace(/_/g, " ");
+  }
   // a region or electrode as people write it: Amygdalar_Complex_L reads Amygdalar Complex L
   function elementName(e) { return String(e == null ? "" : e).replace(/_/g, " "); }
   function testLabel(t) {
     var m = t.measure ? formatName(t.measure) : "";
     // facets (a band, a connectivity type) named as the figures name them: Coherence, AEC, Low Gamma
-    return (t.facets || []).map(formatName).concat(m ? [m] : []).join(" · ");
+    return (t.facets || []).map(facetName).concat(m ? [m] : []).join(" · ");
   }
   function digestHtml(a, d) {
     var kind = d.p_kind, html = '<div class="sig-summary">';
