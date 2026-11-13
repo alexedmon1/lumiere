@@ -3,6 +3,13 @@
 The specification's identifier is `neurofaune.results`; it moved from neurofaune to
 neurobox-dev (a working name) on 2026-11-03.
 
+## The package — 2026-11-13
+
+- **The old name is gone:** `neurobox` no longer forwards to `lumiere` (no `import neurobox`, no `neurobox`
+  command). Every tool now installs and imports `lumiere`: neurofaune, source-analytics and source-localization.
+  A commit pinned before this one still carries `neurobox`. Galleries carrying the old `.neurobox-gallery`
+  marker are still rebuilt as Lumière's. The specification is unchanged (0.4.4).
+
 ## 0.4.4 — 2026-11-10
 
 - **Vocabulary:** `ReHo_zscore` and `fALFF_zscore` (functional MRI): ReHo and fALFF with each session's map

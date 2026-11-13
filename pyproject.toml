@@ -13,14 +13,13 @@ dev = ["pytest>=7.0", "pandas>=2.0", "numpy>=1.24", "ruff"]
 
 [project.scripts]
 lumiere = "lumiere.__main__:main"
-neurobox = "lumiere.__main__:main"  # the old name, until every tool has moved
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/lumiere", "src/neurobox"]  # neurobox: the old name, forwarding to lumiere
+packages = ["src/lumiere"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

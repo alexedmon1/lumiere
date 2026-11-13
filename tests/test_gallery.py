@@ -150,18 +150,6 @@ def test_a_gallery_built_under_the_old_name_is_still_rebuilt(study):
     assert (old / ".lumiere-gallery").is_file() and not (old / ".neurobox-gallery").exists()
 
 
-def test_the_old_name_forwards_to_lumiere():
-    import neurobox.gallery
-    from neurobox.spec import analysis_id
-
-    import lumiere
-    import lumiere.spec
-    import neurobox
-
-    assert neurobox.gallery is lumiere.gallery and analysis_id is lumiere.spec.analysis_id
-    assert neurobox.write_analysis is lumiere.write_analysis
-
-
 def test_a_folder_the_shell_did_not_build_is_never_replaced(study):
     other = study / "gallery"
     other.mkdir()

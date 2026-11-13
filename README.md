@@ -43,8 +43,7 @@ pip install "lumiere @ git+https://github.com/alexedmon1/lumiere@<commit>"
 ```
 
 Pin a commit: the specification is still a draft. This gives you the `lumiere` command (also
-`python -m lumiere`) and the `lumiere` package. Code written for its old name, `neurobox`, keeps working: that
-name forwards to `lumiere` until every tool has moved.
+`python -m lumiere`) and the `lumiere` package.
 
 ## Build a study's gallery
 
@@ -158,8 +157,7 @@ ruff check src tests
 ```
 
 The page is `src/lumiere/gallery/index.html` and `static/` (`gallery.css`, `gallery.js`, and the vendored
-GLightbox and Tablesort, with their notices in `static/vendor/NOTICE.md`); `src/neurobox/` only forwards
-the old name. `CHANGELOG.md` lists every change
+GLightbox and Tablesort, with their notices in `static/vendor/NOTICE.md`). `CHANGELOG.md` lists every change
 to the specification and the gallery.
 
 ## Where it came from
@@ -167,10 +165,10 @@ to the specification and the gallery.
 The specification began in neurofaune as `neurofaune.results` (0.3.0) and moved here on 2026-11-03, so EEG
 tools could use it without installing neurofaune, which re-exports it. The repository was called
 `neurobox-dev`, a working name, until 2026-11-10, when the gallery was named Lumière (light, in French, beside
-Esprit and Duet) and the repository, package and command with it; GitHub sends the old address here, and
-`import neurobox` still works. Galleries built before then carry `.neurobox-gallery` and are rebuilt as
-Lumière's. The identifier written in each
-`analysis.json` is still `"neurofaune.results"`, so folders written before the rename stay valid.
+Esprit and Duet) and the repository, package and command with it; GitHub sends the old address here.
+Galleries built before the rename carry `.neurobox-gallery` and are rebuilt as Lumière's. The old name
+`neurobox` forwarded to `lumiere` until 2026-11-13, when the last tool had moved. The identifier written in
+each `analysis.json` is still `"neurofaune.results"`, so folders written before the rename stay valid.
 
 ## Licence
 
