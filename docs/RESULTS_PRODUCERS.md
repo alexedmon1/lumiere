@@ -129,8 +129,13 @@ Nothing was run. The four items marked † were re-checked in the source.
 - **No test-level read-out.** Nothing like `read_randomise`: no tests table (n, df,
   whole-mask effect with CI, direction, extent) and no clusters table with mm³,
   peak coordinates and named regions.
-- **Effect sizes are only maps.** `stats/effect_size.py` assumes a one-sample design
-  (d = t / √N) for any `.mat` and is marked untested (`TODO_EFFECT_SIZE_TESTING.md`).
+- **Effect sizes are only maps.** `stats/effect_size.py` assumed a one-sample design
+  (d = t / √N) for any `.mat`, halving d for two equal groups. Fixed and tested on
+  2026-11-13 (neurovrai `a467285`): d = t·√(c′(X′X)⁻¹c) for each contrast from
+  `design.mat` and `design.con`, as neurofaune does, checked against d computed from
+  simulated data (`tests/unit/test_effect_size.py`). A run on real randomise output is
+  still to do (`TODO_EFFECT_SIZE_TESTING.md`); maps made from a `.mat` before then
+  should be remade.
 - **The correction is named only in filenames**, never in a table.
 - **No provenance**: no version, commit, run id or input record.
 - **Discovery is by hardcoded paths**; each module writes its own HTML.
