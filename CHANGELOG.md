@@ -3,6 +3,11 @@
 The specification's identifier is `neurofaune.results`; it moved from neurofaune to
 neurobox-dev (a working name) on 2026-11-03.
 
+## 0.4.6 — 2026-11-16
+
+- **Vocabulary:** `CBF` (ASL; the first ASL measure) and `T1w_T2w` (anatomical; aliases `T1w/T2w`,
+  `t1t2ratio`), for neurovrai's ASL and T1w/T2w-ratio analyses (IRC805).
+
 ## 0.4.5 — 2026-11-16
 
 - **`derived_from` in `provenance.json` (§4):** the tools whose outputs an analysis read, upstream first,

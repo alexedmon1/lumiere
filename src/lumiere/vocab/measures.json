@@ -89,6 +89,14 @@
   "modality": "anat",
   "description": "log-Jacobian of a deformation, affine removed (TBM; change relative to the whole brain)"
  },
+ "T1w_T2w": {
+  "modality": "anat",
+  "description": "ratio of T1-weighted to T2-weighted intensity, a myelin-sensitive contrast (unitless)",
+  "aliases": [
+   "T1w/T2w",
+   "t1t2ratio"
+  ]
+ },
  "T2": {
   "modality": "msme",
   "description": "T2 relaxation time (multi-echo spin echo)"
@@ -127,6 +135,10 @@
  "fALFF_zscore": {
   "modality": "func",
   "description": "fractional amplitude of low-frequency fluctuations, each session's map z-scored within its own brain mask (a value relative to that brain, not fALFF itself)"
+ },
+ "CBF": {
+  "modality": "asl",
+  "description": "cerebral blood flow from arterial spin labelling (mL/100 g/min unless the column dictionary says otherwise)"
  },
  "FC": {
   "modality": "func",
