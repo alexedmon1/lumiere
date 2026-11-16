@@ -262,3 +262,63 @@ def test_pins_are_read_without_a_toml_reader_too():
             "neurofaune = 'git+https://x/neurofaune.git@9ec3a7f'  # by commit\n[other]\nnope = \"x\"\n")
     assert _packages_310(text) == {"source-analytics": "git+https://x/source-analytics.git@v0.8.2",
                                    "neurofaune": "git+https://x/neurofaune.git@9ec3a7f"}
+
+
+def test_the_page_says_where_the_data_comes_from(tmp_path, monkeypatch):
+    """The study, its Esprit project and Duet record, and the tools the data passed through,
+    upstream first (provenance.json's derived_from, 0.4.5), on the overview and each analysis."""
+    from lumiere import check
+    from lumiere.gallery import links
+
+    top = tmp_path / "lab" / "FORGE" / "treatment"
+    res = top / "results"
+    roi = _analysis_folder(res, "eeg/roi/psd", "r1", modality="eeg", domain="spectral")
+    net = _analysis_folder(res, "eeg/nbs/network", "r1", modality="eeg", atype="nbs")
+    for f, version in ((roi, "0.8.2"), (net, "0.9.0")):
+        p = json.loads((f / "provenance.json").read_text())
+        p["generated_by"] = [{"Name": "source-analytics", "Version": version}, {"Name": "R", "Version": "4.6.1"}]
+        p["derived_from"] = [{"Name": "source-localization", "Version": "0.5.1", "Stage": "source localization"}]
+        (f / "provenance.json").write_text(json.dumps(p))
+        assert check(f)[0].ok
+    (top.parent / ".esprit").write_text("forge\n")             # linked above the study, as FORGE is
+    (top / "study.toml").write_text('[study]\nname = "forge-treatment"\nmodality = "mouse-eeg"\n')
+    (top / "duet").mkdir()
+    (top / "duet" / "record.html").write_text("<p>record</p>")
+
+    m = _manifest(gallery.build(top, {"paths": {"results": "results"}}))
+    assert m["study"] == {"name": "forge-treatment", "modality": "mouse-eeg", "code": None,
+                          "folder": str(top.resolve()), "esprit": ["forge"], "duet": "../duet/record.html"}
+    assert m["tools"] == [
+        {"name": "source-localization", "stage": "source localization", "versions": ["0.5.1"], "analyses": 2},
+        {"name": "source-analytics", "stage": "analysis", "versions": ["0.9.0", "0.8.2"], "analyses": 2}]
+    psd = next(a for a in m["analyses"].values() if a["id"] == "eeg/roi/psd")
+    assert psd["provenance"]["derived_from"][0]["Name"] == "source-localization"
+    js = (top / "gallery" / "assets" / "gallery.js").read_text()
+    assert "Where this comes from" in js and "Data from" in js
+
+    monkeypatch.setattr(links, "tomllib", None)                # Python 3.10 reads [study] too
+    assert links.study_identity(top, top / "gallery")["name"] == "forge-treatment"
+
+
+def test_a_study_with_no_identity_files_still_builds(study):
+    m = _manifest(gallery.build(study, SETTINGS))
+    assert m["study"]["esprit"] == [] and m["study"]["name"] is None and m["study"]["duet"] is None
+    assert [t["name"] for t in m["tools"]] == ["demo"]
+
+
+def test_derived_from_is_checked(tmp_path):
+    from lumiere import check
+
+    f = _analysis_folder(tmp_path, "dwi/roi/x", "r1")
+    p = json.loads((f / "provenance.json").read_text())
+    p["derived_from"] = [{"Name": "neurofaune"}]                 # no Version
+    (f / "provenance.json").write_text(json.dumps(p))
+    assert not check(f)[0].ok
+    p["derived_from"] = [{"Name": "neurofaune", "Version": "0.12.0"}]
+    (f / "provenance.json").write_text(json.dumps(p))
+    assert check(f)[0].ok
+    a = json.loads((f / "analysis.json").read_text())
+    a["spec_version"] = "0.3.0"                                  # the folder's version is analysis.json's
+    (f / "analysis.json").write_text(json.dumps(a))
+    errors = check(f)[0].errors
+    assert any("derived_from is from 0.4" in e for e in errors)

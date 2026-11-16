@@ -3,6 +3,23 @@
 The specification's identifier is `neurofaune.results`; it moved from neurofaune to
 neurobox-dev (a working name) on 2026-11-03.
 
+## 0.4.5 — 2026-11-16
+
+- **`derived_from` in `provenance.json` (§4):** the tools whose outputs an analysis read, upstream first,
+  each `{Name, Version, CommitID, Stage, Description}`: source-localization's localizations under
+  source-analytics' statistics, say. Optional; usable from 0.4, refused in older folders.
+- **The writer:** `provenance(..., derived_from=[...])`.
+
+## Gallery shell — 2026-11-16
+
+- **Where the data comes from:** the overview says which study and project the gallery is for (the study's
+  name and modality from `study.toml`, its folder, the Esprit project its folder is linked to, its Duet
+  record) and every tool the data passed through, upstream first, with their versions. Each analysis
+  says it in one line under "About this analysis": the project, then `derived_from`'s stages, then its
+  producer.
+- **`pip install 'lumiere[yaml]'`** brings PyYAML, so `lumiere gallery` reads a study's `gallery.yaml`
+  without an analysis tool installed beside it; the error says so when it is missing.
+
 ## The package — 2026-11-13
 
 - **The old name is gone:** `neurobox` no longer forwards to `lumiere` (no `import neurobox`, no `neurobox`

@@ -10,9 +10,14 @@ reads, so each analysis can show its findings and link to them in the record pag
 its producer made it (``generated_by``, producer first). Compared, an analysis made with an older
 version than the pin is flagged: its numbers may not be what the pinned code gives now.
 
-Both are read when the gallery is built, from the study's own files; nothing is fetched, and a
-study with neither file builds as before. Standard library only: on Python 3.10, which has no
-``tomllib``, the ``[packages]`` table's ``name = "value"`` lines are read directly.
+**Which study and project it belongs to.** The study's name and modality from ``study.toml``
+(``[study]``), its folder, the Esprit project(s) the folder is linked to (the nearest ``.esprit``
+at or above it, one project id a line) and its Duet record, if it has one: what the page says the
+data is derived from, beside the tools each analysis names.
+
+All are read when the gallery is built, from the study's own files; nothing is fetched, and a
+study with none of these files builds as before. Standard library only: on Python 3.10, which has
+no ``tomllib``, a table's ``name = "value"`` lines are read directly.
 """
 from __future__ import annotations
 
@@ -35,19 +40,30 @@ _TABLE = re.compile(r"^\s*\[(?P<name>[^\]]+)\]\s*(?:#.*)?$")
 _STRING = re.compile(r"""^\s*(?P<key>[A-Za-z0-9_.-]+|"[^"]+")\s*=\s*(?P<q>["'])(?P<value>.*?)(?P=q)\s*(?:#.*)?$""")
 
 
-def _packages_310(text: str) -> dict[str, str]:
-    """``[packages]``'s string values, without a TOML reader: all a pin is."""
+def _table_310(text: str, name: str) -> dict[str, str]:
+    """A table's string values, without a TOML reader: all a pin or a study's name is."""
     out: dict[str, str] = {}
     inside = False
     for line in text.splitlines():
         table = _TABLE.match(line)
         if table:
-            inside = table["name"].strip() == "packages"
+            inside = table["name"].strip() == name
             continue
         m = _STRING.match(line) if inside else None
         if m:
             out[m["key"].strip('"')] = m["value"]
     return out
+
+
+def _packages_310(text: str) -> dict[str, str]:
+    """``[packages]``'s string values, without a TOML reader."""
+    return _table_310(text, "packages")
+
+
+def _study_table(text: str, name: str) -> dict[str, Any]:
+    if tomllib:
+        return tomllib.loads(text).get(name) or {}
+    return _table_310(text, name)
 
 _PIN = re.compile(r"^git\+(?P<url>.+?)(?:\.git)?@(?P<ref>[^@#\s]+)$")
 _SHA = re.compile(r"^[0-9a-f]{7,40}$")
@@ -81,7 +97,7 @@ def study_pins(study: Path) -> dict[str, str]:
     """Package name (normalised) to the ref ``study.toml`` pins it at."""
     try:
         text = (study / "study.toml").read_text(encoding="utf-8")
-        packages = (tomllib.loads(text).get("packages") or {}) if tomllib else _packages_310(text)
+        packages = _study_table(text, "packages")
     except (OSError, ValueError):
         return {}
     pins = {}
@@ -90,6 +106,34 @@ def study_pins(study: Path) -> dict[str, str]:
         if m:
             pins[_name(name)] = m["ref"]
     return pins
+
+
+def esprit_projects(folder: Path) -> list[str]:
+    """The Esprit project ids the folder is linked to: its nearest ``.esprit``, at or above it."""
+    for here in (folder, *folder.parents):
+        marker = here / ".esprit"
+        if marker.is_file():
+            try:
+                lines = marker.read_text(encoding="utf-8").splitlines()
+            except OSError:
+                return []
+            return [x.strip() for x in lines if x.strip() and not x.strip().startswith("#")]
+    return []
+
+
+def study_identity(study: Path, dest: Path) -> dict[str, Any]:
+    """Where the gallery's data comes from: the study, its folder, its Esprit project(s) and its
+    Duet record (a link relative to the gallery, when the study has one)."""
+    try:
+        meta = _study_table((study / "study.toml").read_text(encoding="utf-8"), "study")
+    except (OSError, ValueError):
+        meta = {}
+    record = study / "duet" / "record.html"
+    return {
+        "name": meta.get("name"), "modality": meta.get("modality"), "code": meta.get("code"),
+        "folder": str(study), "esprit": esprit_projects(study),
+        "duet": Path(os.path.relpath(record, dest)).as_posix() if record.is_file() else None,
+    }
 
 
 def _parts(version: str) -> tuple[tuple[int, ...], int, str, bool] | None:

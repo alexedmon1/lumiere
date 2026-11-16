@@ -725,6 +725,8 @@ def check_analysis(folder: Path) -> Report:
     prov = _load_json(folder / PROVENANCE_JSON, rep)
     if prov is not None:
         rep.errors += [f"{PROVENANCE_JSON}{e[1:]}" for e in validate(prov, load_schema("provenance"))]
+        if "derived_from" in prov and version is not None and version < (0, 4):
+            rep.errors.append(f"{PROVENANCE_JSON}: derived_from is from 0.4; the folder declares {_v(version)}")
         status = (prov.get("run") or {}).get("status")
         if status and status != "completed":
             rep.warnings.append(f"run status is {status!r}, not completed")

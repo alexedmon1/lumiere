@@ -27,8 +27,8 @@ that made it; a checker and a small writer come with it.
 
 - **Python 3.10 or later.** Lumière uses only the standard library, so any analysis tool can install it
   without pulling in another tool's stack.
-- **PyYAML**, only if your gallery settings are in `gallery.yaml` (otherwise use `gallery.json`). Analysis
-  tools that build galleries for you already have it.
+- **PyYAML**, only if your gallery settings are in `gallery.yaml` (otherwise use `gallery.json`):
+  `pip install 'lumiere[yaml]'`. Analysis tools that build galleries for you already have it.
 - **A browser.** The gallery is plain HTML, CSS and JavaScript with everything inside its folder: no server, no
   internet connection, nothing fetched.
 - **Analysis folders that meet the results specification.** Today these come from
@@ -105,9 +105,13 @@ which and why.
 
 - **A top bar and the sections down the left**, laid out as Esprit and Duet are: the study's name, a search
   (`/` to start typing), and a light or dark button that follows your computer until you press it.
-- **An overview**: how many analyses, figures and tables, by modality and level.
+- **An overview**: where the data comes from (the study, its folder, the Esprit project and Duet record it
+  belongs to, and every tool the data passed through, upstream first, with versions), then how many
+  analyses, figures and tables, by modality and level.
 - **Each analysis**, under its section:
-  - *About this analysis*: its method and how to read it, with the caveats its tool states.
+  - *About this analysis*: its method and how to read it, with the caveats its tool states, and a
+    *Data from* line: the project, then the tools its data passed through (`derived_from` in
+    `provenance.json`), then the tool that made it.
   - *Summary*: what was found, not only what was tested: for each declared contrast, the tests with a
     significant result at every level the analysis reports, the strongest effect, and equivalence results
     counted apart.

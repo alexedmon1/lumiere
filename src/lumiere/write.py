@@ -62,8 +62,13 @@ def write_columns(table: Path, master: Mapping[str, Mapping[str, Any]],
 
 def provenance(generated_by: list[dict], *, status: str, start: str, end: str | None = None,
                run_id: str | None = None, inputs: list[dict] | None = None,
-               subjects: dict | None = None, settings: dict | None = None) -> dict:
-    """A ``provenance.json`` body; ``generated_by`` is BIDS GeneratedBy, producer first."""
+               subjects: dict | None = None, settings: dict | None = None,
+               derived_from: list[dict] | None = None) -> dict:
+    """A ``provenance.json`` body; ``generated_by`` is BIDS GeneratedBy, producer first.
+
+    ``derived_from`` names the tools whose outputs the analysis read, upstream first, each
+    ``{Name, Version, CommitID, Stage, Description}`` (Stage: "preprocessing", "source
+    localization"): where the data came from before the producer (0.4.5)."""
     rec: dict[str, Any] = {
         "spec": SPEC, "spec_version": SPEC_VERSION, "generated_by": generated_by,
         "run": {"status": status, "start": start, "end": end},
@@ -71,7 +76,8 @@ def provenance(generated_by: list[dict], *, status: str, start: str, end: str | 
     }
     if run_id:
         rec["run"]["id"] = run_id
-    for key, value in (("inputs", inputs), ("subjects", subjects), ("settings", settings)):
+    for key, value in (("inputs", inputs), ("subjects", subjects), ("settings", settings),
+                       ("derived_from", derived_from)):
         if value is not None:
             rec[key] = value
     return rec

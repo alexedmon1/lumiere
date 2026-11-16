@@ -229,6 +229,44 @@
     });
   }
 
+  /* ── Where the data comes from: the study and project, and the tools it passed through ── */
+  function projectName() {
+    var s = M.study || {};
+    return (s.esprit && s.esprit.length) ? s.esprit.join(", ") : (s.name || "");
+  }
+  function toolText(t) {
+    return t.name + (t.versions && t.versions.length ? " " + t.versions.join(", ") : "") +
+      (t.stage && t.stage !== "analysis" ? " (" + t.stage + ")" : "");
+  }
+  function originHtml() {
+    var s = M.study || {};
+    var rows = [];
+    if (s.esprit && s.esprit.length) rows.push(["Project", s.esprit.join(", ") + " (Esprit)"]);
+    if (s.name) rows.push(["Study", s.name + (s.modality ? " · " + s.modality : "") + (s.code ? " · " + s.code : "")]);
+    if (s.folder) rows.push(["Folder", s.folder]);
+    var tools = M.tools || [];
+    if (tools.length) rows.push(["Tools", tools.map(function (t) {
+      return toolText(t) + (t.stage === "analysis" ? " — " + plural(t.analyses, "analysis", "analyses") : "");
+    }).join(" → ")]);
+    if (!rows.length && !s.duet) return "";
+    var html = '<div class="data-origin"><div class="data-origin-title">Where this comes from</div><dl>';
+    rows.forEach(function (r) { html += "<dt>" + esc(r[0]) + "</dt><dd>" + esc(r[1]) + "</dd>"; });
+    if (s.duet) html += '<dt>Duet record</dt><dd><a href="' + esc(s.duet) + '" target="_blank" rel="noopener">' +
+      "the study's findings and claims</a></dd>";
+    return html + "</dl></div>";
+  }
+  // One analysis: its project, and the tools its data passed through, upstream first.
+  function dataFromHtml(a) {
+    var p = a.provenance || {};
+    var chain = (p.derived_from || []).map(function (d) {
+      return d.Name + " " + d.Version + (d.Stage ? " (" + d.Stage + ")" : "");
+    }).concat((p.generated_by || []).slice(0, 1).map(function (g) { return g.Name + " " + g.Version; }));
+    var project = projectName();
+    if (!chain.length && !project) return "";
+    return '<div class="data-from"><span class="about-label">Data from</span> ' +
+      (project ? "<b>" + esc(project) + "</b>" + (chain.length ? " · " : "") : "") + esc(chain.join(" → ")) + "</div>";
+  }
+
   /* ── Overview ── */
   function statCard(value, label) {
     return '<div class="stat-card"><div class="stat-value">' + esc(value) + '</div><div class="stat-label">' +
@@ -242,6 +280,7 @@
     TREE.forEach(function (g) { designs += g.designs.length; });
     var html = '<h2 class="section-header">' + esc(M.title) + "</h2>";
     if (M.description) html += '<p class="page-lead">' + esc(M.description) + "</p>";
+    html += originHtml();
     html += '<div class="overview-grid">' + statCard(KEYS.length, KEYS.length === 1 ? "Analysis" : "Analyses") +
       statCard(nFig, "Figures") + statCard(nTab, "Tables") + statCard(designs, designs === 1 ? "Design" : "Designs") +
       "</div>";
@@ -453,6 +492,7 @@
       html += '<div class="analysis-about"><span class="about-label">About this analysis</span> ' +
         esc(a.description) + "</div>";
     }
+    html += dataFromHtml(a);
     var tags = [a.modality, a.analysis_type, a.task && "task " + a.task, a.role].filter(Boolean);
     html += '<div class="tags">' + tags.map(function (t) {
       return '<span class="tag' + (t === a.role ? " role-" + esc(t) : "") + '">' + esc(t) + "</span>";
@@ -521,6 +561,9 @@
     add("effect", e.measure === null ? e.reason : e.definition);
     add("run", [a.run && a.run.id, a.run && a.run.label].filter(Boolean).join(" — "));
     var p = a.provenance || {};
+    add("derived from", (p.derived_from || []).map(function (d) {
+      return d.Name + " " + d.Version + (d.Stage ? " (" + d.Stage + ")" : "");
+    }).join(" → "));
     add("produced by", (p.generated_by || []).map(function (gb) { return gb.Name + " " + gb.Version; }).join(", "));
     if (p.status && p.status !== "completed") add("status", p.status);
     add("analysis id", a.id);

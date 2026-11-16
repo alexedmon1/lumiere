@@ -335,12 +335,14 @@ its own analysis, with its own id and runs; **`variant`** ties them together:
 | `spec`*, `spec_version`* | as in `analysis.json` |
 | `generated_by`* | BIDS `GeneratedBy`: `[{Name*, Version*, CommitID, RequestedRevision, Description}]`, the producing package first, then the tools it ran (FSL, ANTs) |
 | `run`* | `{status*, start*, end, id}`; `status` is `completed`, `partial`, `failed` or `running` |
+| `derived_from` | the tools whose outputs the analysis read, upstream first: `[{Name*, Version*, CommitID, Stage, Description}]`, `Stage` saying what each did ("preprocessing", "source localization"). Not the producer, which is `generated_by`'s first. From 0.4 (added in 0.4.5) |
 | `inputs` | `[{path*, role, sha256}]` |
 | `subjects` | `{n, groups: {name: n}}` |
 | `settings` | the parameters the analysis ran with |
 | `environment` | `{python, platform}` |
 
-A reader shows a run whose status is not `completed` as such, never silently.
+A reader shows a run whose status is not `completed` as such, never silently. A reader shows where the data
+came from: the stages in `derived_from`, then the producer.
 
 ## 5. Tables and column dictionaries
 

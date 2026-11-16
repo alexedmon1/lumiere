@@ -62,7 +62,7 @@ from ..spec import (
     measure_vocabulary,
 )
 from .digest import digest as significance_digest
-from .links import code_state, findings_by_analysis, study_pins
+from .links import code_state, findings_by_analysis, study_identity, study_pins
 
 HERE = Path(__file__).parent
 #: Marks a folder this shell built, which a rebuild may replace.
@@ -89,7 +89,8 @@ def load_settings(path: Path) -> dict:
     try:
         import yaml
     except ImportError as exc:                     # pragma: no cover - depends on install
-        raise GalleryError(f"{path.name}: reading YAML needs PyYAML; pass the settings as JSON") from exc
+        raise GalleryError(f"{path.name}: reading YAML needs PyYAML: pip install 'lumiere[yaml]' "
+                           "(or pass the settings as JSON)") from exc
     return yaml.safe_load(text) or {}
 
 
@@ -199,7 +200,8 @@ def _provenance(folder: Path) -> dict:
     except (OSError, ValueError):
         return {}
     run = p.get("run") or {}
-    return {"generated_by": p.get("generated_by") or [], "status": run.get("status"),
+    return {"generated_by": p.get("generated_by") or [], "derived_from": p.get("derived_from") or [],
+            "status": run.get("status"),
             "start": run.get("start"), "end": run.get("end"), "subjects": (p.get("subjects") or {}).get("n")}
 
 
@@ -210,6 +212,32 @@ def _digest(folder: Path, analysis: dict) -> dict | None:
     except Exception as exc:  # noqa: BLE001 - one analysis's summary must not stop the gallery
         warnings.warn(f"{analysis.get('id')}: no significance summary: {exc}", stacklevel=2)
         return None
+
+
+def tool_chain(current: list[dict]) -> list[dict]:
+    """Every tool the shown analyses' data passed through, upstream first: each analysis's
+    ``derived_from`` (the stages before it), then its producer (``generated_by``'s first). One entry
+    a tool, ``{name, stage, versions, analyses}``, versions as written, in the order first met."""
+    tools: dict[str, dict] = {}
+    upstream: list[str] = []
+    producers: list[str] = []
+    for a in current:
+        p = a.get("provenance") or {}
+        chain = [(d, True) for d in p.get("derived_from") or [] if isinstance(d, dict)]
+        chain += [(g, False) for g in (p.get("generated_by") or [])[:1] if isinstance(g, dict)]
+        for entry, is_upstream in chain:
+            name = str(entry.get("Name") or "").strip()
+            if not name:
+                continue
+            t = tools.setdefault(name, {"name": name, "stage": None, "versions": [], "analyses": 0})
+            (upstream if is_upstream else producers).append(name)
+            t["stage"] = t["stage"] or entry.get("Stage") or (None if is_upstream else "analysis")
+            version = str(entry.get("Version") or "")
+            if version and version not in t["versions"]:
+                t["versions"].append(version)
+            t["analyses"] += 1
+    order = list(dict.fromkeys([n for n in upstream if n not in producers] + producers + upstream))
+    return [tools[n] for n in order]
 
 
 def collect(roots: list[Path]) -> list[tuple[Path, dict, Any]]:
@@ -357,6 +385,7 @@ def build(study: Path, settings: dict | None = None, out: Path | None = None) ->
         "not_shown": failed, "built": built, "spec_version": SPEC_VERSION,
         "code": code, "findings": sum(len(a["findings"]) for a in current),
         "generator": settings.get("generator"),
+        "study": study_identity(study, dest), "tools": tool_chain(current),
     }
     shutil.copytree(HERE / "static", dest / "assets")
     data = json.dumps(manifest, default=str).replace("</", "<\\/")

@@ -1,6 +1,6 @@
 [project]
 name = "lumiere"
-version = "0.4.4"
+version = "0.4.5"
 description = "Lumière: a study's results as one static page, and the results specification and checker that every analysis tool writes to"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -9,7 +9,8 @@ authors = [{name = "Alex D. Edmondson"}]
 dependencies = []  # standard library only, so any producer or reader can install it
 
 [project.optional-dependencies]
-dev = ["pytest>=7.0", "pandas>=2.0", "numpy>=1.24", "ruff"]
+yaml = ["pyyaml>=6"]
+dev = ["pytest>=7.0", "pandas>=2.0", "numpy>=1.24", "ruff", "pyyaml>=6"]
 
 [project.scripts]
 lumiere = "lumiere.__main__:main"

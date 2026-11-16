@@ -47,6 +47,20 @@
         "groups": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}}
       }
     },
+    "derived_from": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["Name", "Version"],
+        "properties": {
+          "Name": {"type": "string", "minLength": 1},
+          "Version": {"type": "string", "minLength": 1},
+          "CommitID": {"type": "string"},
+          "Stage": {"type": "string"},
+          "Description": {"type": "string"}
+        }
+      }
+    },
     "settings": {"type": "object"},
     "environment": {"type": "object"}
   }
